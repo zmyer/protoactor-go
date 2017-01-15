@@ -1,4 +1,4 @@
-package actor
+package process
 
 type deadLetterProcess struct{}
 
@@ -25,8 +25,4 @@ func (*deadLetterProcess) SendSystemMessage(pid *PID, message SystemMessage) {
 		PID:     pid,
 		Message: message,
 	})
-}
-
-func (ref *deadLetterProcess) Stop(pid *PID) {
-	ref.SendSystemMessage(pid, stopMessage)
 }

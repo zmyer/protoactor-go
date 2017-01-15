@@ -3,10 +3,11 @@ package actor
 import (
 	"testing"
 
+	"github.com/AsynkronIT/protoactor-go/process"
 	"github.com/stretchr/testify/assert"
 )
 
-type EchoOnStartActor struct{ replyTo *PID }
+type EchoOnStartActor struct{ replyTo *process.PID }
 
 func (state *EchoOnStartActor) Receive(context Context) {
 	switch context.Message().(type) {
@@ -15,23 +16,23 @@ func (state *EchoOnStartActor) Receive(context Context) {
 	}
 }
 
-func NewEchoOnStartActor(replyTo *PID) func() Actor {
+func NewEchoOnStartActor(replyTo *process.PID) func() Actor {
 	return func() Actor {
 		return &EchoOnStartActor{replyTo: replyTo}
 	}
 }
 
 func TestActorCanReplyOnStarting(t *testing.T) {
-	future := NewFuture(testTimeout)
+	future := process.NewFuture(testTimeout)
 	actor := Spawn(FromProducer(NewEchoOnStartActor(future.PID())))
-	defer actor.Stop()
+	defer stopActor(actor)
 	if _, err := future.Result(); err != nil {
 		assert.Fail(t, "timed out")
 		return
 	}
 }
 
-type EchoOnStoppingActor struct{ replyTo *PID }
+type EchoOnStoppingActor struct{ replyTo *process.PID }
 
 func (state *EchoOnStoppingActor) Receive(context Context) {
 	switch context.Message().(type) {
@@ -40,16 +41,16 @@ func (state *EchoOnStoppingActor) Receive(context Context) {
 	}
 }
 
-func NewEchoOnStoppingActor(replyTo *PID) func() Actor {
+func NewEchoOnStoppingActor(replyTo *process.PID) func() Actor {
 	return func() Actor {
 		return &EchoOnStoppingActor{replyTo: replyTo}
 	}
 }
 
 func TestActorCanReplyOnStopping(t *testing.T) {
-	future := NewFuture(testTimeout)
+	future := process.NewFuture(testTimeout)
 	actor := Spawn(FromProducer(NewEchoOnStoppingActor(future.PID())))
-	actor.Stop()
+	stopActor(actor)
 	if _, err := future.Result(); err != nil {
 		assert.Fail(t, "timed out")
 		return

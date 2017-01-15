@@ -5,6 +5,7 @@ import (
 
 	"time"
 
+	"github.com/AsynkronIT/protoactor-go/process"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -29,7 +30,7 @@ func NewCreateChildActor() Actor {
 
 func TestActorCanCreateChildren(t *testing.T) {
 	actor := Spawn(FromProducer(NewCreateChildActor))
-	defer actor.Stop()
+	defer stopActor(actor)
 	expected := 10
 	for i := 0; i < expected; i++ {
 		actor.Tell(CreateChildMessage{})
@@ -43,12 +44,12 @@ func TestActorCanCreateChildren(t *testing.T) {
 }
 
 type CreateChildThenStopActor struct {
-	replyTo *PID
+	replyTo *process.PID
 }
 
 type GetChildCountMessage2 struct {
-	ReplyDirectly  *PID
-	ReplyAfterStop *PID
+	ReplyDirectly  *process.PID
+	ReplyAfterStop *process.PID
 }
 
 func (state *CreateChildThenStopActor) Receive(context Context) {
@@ -76,8 +77,8 @@ func TestActorCanStopChildren(t *testing.T) {
 		actor.Tell(CreateChildMessage{})
 	}
 
-	future := NewFuture(testTimeout)
-	future2 := NewFuture(testTimeout)
+	future := process.NewFuture(testTimeout)
+	future2 := process.NewFuture(testTimeout)
 	actor.Tell(GetChildCountMessage2{ReplyDirectly: future.PID(), ReplyAfterStop: future2.PID()})
 
 	//wait for the actor to reply to the first responsePID
@@ -88,7 +89,7 @@ func TestActorCanStopChildren(t *testing.T) {
 	}
 
 	//then send a stop command
-	actor.Stop()
+	stopActor(actor)
 
 	//wait for the actor to stop and get the result from the stopped handler
 	response, err := future2.Result()
@@ -102,7 +103,7 @@ func TestActorCanStopChildren(t *testing.T) {
 
 func TestActorReceivesTerminatedFromWatched(t *testing.T) {
 	child := Spawn(FromInstance(nullReceive))
-	future := NewFuture(testTimeout)
+	future := process.NewFuture(testTimeout)
 	var r Receive = func(c Context) {
 		switch msg := c.Message().(type) {
 		case *Started:
@@ -117,7 +118,7 @@ func TestActorReceivesTerminatedFromWatched(t *testing.T) {
 	}
 
 	Spawn(FromInstance(r))
-	child.Stop()
+	stopActor(child)
 
 	_, err := future.Result()
 	assert.NoError(t, err, "timed out")
@@ -126,7 +127,7 @@ func TestActorReceivesTerminatedFromWatched(t *testing.T) {
 func TestFutureDoesTimeout(t *testing.T) {
 	pid := Spawn(FromInstance(nullReceive))
 	_, err := pid.RequestFuture("", time.Millisecond).Result()
-	assert.EqualError(t, err, ErrTimeout.Error())
+	assert.EqualError(t, err, process.ErrTimeout.Error())
 }
 
 func TestFutureDoesNotTimeout(t *testing.T) {

@@ -5,10 +5,11 @@ import (
 	"sync/atomic"
 
 	"github.com/AsynkronIT/protoactor-go/internal/queue/mpsc"
+	"github.com/AsynkronIT/protoactor-go/process"
 )
 
 type ReceiveUserMessage func(interface{})
-type ReceiveSystemMessage func(SystemMessage)
+type ReceiveSystemMessage func(process.SystemMessage)
 
 type MailboxStatistics interface {
 	MailboxStarted()
@@ -21,7 +22,7 @@ type MailboxRunner func()
 type MailboxProducer func() Mailbox
 type Mailbox interface {
 	PostUserMessage(message interface{})
-	PostSystemMessage(message SystemMessage)
+	PostSystemMessage(message process.SystemMessage)
 	RegisterHandlers(invoker MessageInvoker, dispatcher Dispatcher)
 }
 
@@ -48,7 +49,7 @@ type DefaultMailbox struct {
 
 func (m *DefaultMailbox) ConsumeSystemMessages() bool {
 	if sysMsg := m.systemMailbox.Pop(); sysMsg != nil {
-		sys, _ := sysMsg.(SystemMessage)
+		sys, _ := sysMsg.(process.SystemMessage)
 		switch sys.(type) {
 		case *SuspendMailbox:
 			m.suspended = true
@@ -70,7 +71,7 @@ func (m *DefaultMailbox) PostUserMessage(message interface{}) {
 	m.schedule()
 }
 
-func (m *DefaultMailbox) PostSystemMessage(message SystemMessage) {
+func (m *DefaultMailbox) PostSystemMessage(message process.SystemMessage) {
 	m.systemMailbox.Push(message)
 	m.schedule()
 }

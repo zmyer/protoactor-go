@@ -1,24 +1,26 @@
 package actor
 
-type Spawner func(id string, props Props, parent *PID) *PID
+import "github.com/AsynkronIT/protoactor-go/process"
+
+type Spawner func(id string, props Props, parent *process.PID) *process.PID
 
 var DefaultSpawner Spawner = spawn
 
 //Spawn an actor with an auto generated id
-func Spawn(props Props) *PID {
-	return props.spawn(ProcessRegistry.NextId(), nil)
+func Spawn(props Props) *process.PID {
+	return props.spawn(process.ProcessRegistry.NextId(), nil)
 }
 
 //SpawnNamed spawns a named actor
-func SpawnNamed(props Props, name string) *PID {
+func SpawnNamed(props Props, name string) *process.PID {
 	return props.spawn(name, nil)
 }
 
-func spawn(id string, props Props, parent *PID) *PID {
+func spawn(id string, props Props, parent *process.PID) *process.PID {
 	cell := newActorCell(props, parent)
 	mailbox := props.ProduceMailbox()
 	ref := newLocalProcess(mailbox)
-	pid, absent := ProcessRegistry.Add(ref, id)
+	pid, absent := process.ProcessRegistry.Add(ref, id)
 
 	if absent {
 		mailbox.RegisterHandlers(cell, props.Dispatcher())

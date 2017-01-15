@@ -1,4 +1,4 @@
-package actor
+package process
 
 const pidSetSliceLen = 16
 

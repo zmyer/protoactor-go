@@ -1,5 +1,7 @@
 package actor
 
+import "github.com/AsynkronIT/protoactor-go/process"
+
 //Props or properties of an actor, it defines how the actor should be created
 type Props struct {
 	actorProducer       Producer
@@ -35,7 +37,7 @@ func (props Props) ProduceMailbox() Mailbox {
 	return props.mailboxProducer()
 }
 
-func (props Props) spawn(id string, parent *PID) *PID {
+func (props Props) spawn(id string, parent *process.PID) *process.PID {
 	if props.spawner != nil {
 		return props.spawner(id, props, parent)
 	}

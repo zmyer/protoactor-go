@@ -1,5 +1,7 @@
 package actor
 
+import "github.com/AsynkronIT/protoactor-go/process"
+
 type Directive int
 
 const (
@@ -9,13 +11,13 @@ const (
 	EscalateDirective
 )
 
-type Decider func(child *PID, cause interface{}) Directive
+type Decider func(child *process.PID, cause interface{}) Directive
 
 //TODO: as we dont allow remote children or remote SupervisionStrategy
 //Instead of letting the parent keep track of child restart stats.
 //this info could actually go into each actor, sending it back to the parent as part of the Failure message
 type SupervisorStrategy interface {
-	HandleFailure(supervisor Supervisor, child *PID, cause interface{})
+	HandleFailure(supervisor Supervisor, child *process.PID, cause interface{})
 }
 
 type OneForOneStrategy struct {
@@ -25,23 +27,23 @@ type OneForOneStrategy struct {
 }
 
 type Supervisor interface {
-	Children() []*PID
-	EscalateFailure(who *PID, reason interface{})
+	Children() []*process.PID
+	EscalateFailure(who *process.PID, reason interface{})
 }
 
-func (strategy *OneForOneStrategy) HandleFailure(supervisor Supervisor, child *PID, reason interface{}) {
+func (strategy *OneForOneStrategy) HandleFailure(supervisor Supervisor, child *process.PID, reason interface{}) {
 	directive := strategy.decider(child, reason)
 
 	switch directive {
 	case ResumeDirective:
 		//resume the failing child
-		child.sendSystemMessage(resumeMailboxMessage)
+		sendSystemMessage(child, resumeMailboxMessage)
 	case RestartDirective:
 		//restart the failing child
-		child.sendSystemMessage(restartMessage)
+		sendSystemMessage(child, restartMessage)
 	case StopDirective:
 		//stop the failing child
-		child.Stop()
+		stopActor(child)
 	case EscalateDirective:
 		//send failure to parent
 		//supervisor mailbox
@@ -57,7 +59,7 @@ func NewOneForOneStrategy(maxNrOfRetries int, withinTimeRangeMilliseconds int, d
 	}
 }
 
-func DefaultDecider(child *PID, reason interface{}) Directive {
+func DefaultDecider(child *process.PID, reason interface{}) Directive {
 	return RestartDirective
 }
 

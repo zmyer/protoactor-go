@@ -8,25 +8,26 @@ import (
 	"strings"
 	"time"
 
+	"github.com/AsynkronIT/protoactor-go/process"
 	"github.com/emirpasic/gods/stacks/linkedliststack"
 )
 
 type messageSender struct {
 	Message interface{}
-	Sender  *PID
+	Sender  *process.PID
 }
 
 type MessageInvoker interface {
-	InvokeSystemMessage(SystemMessage)
+	InvokeSystemMessage(process.SystemMessage)
 	InvokeUserMessage(interface{})
 }
 
 type Context interface {
 	// Watch registers the actor as a monitor for the specified PID
-	Watch(*PID)
+	Watch(*process.PID)
 
 	// Unwatch unregisters the actor as a monitor for the specified PID
-	Unwatch(*PID)
+	Unwatch(*process.PID)
 
 	// Message returns the current message to be processed
 	Message() interface{}
@@ -39,7 +40,7 @@ type Context interface {
 	ReceiveTimeout() time.Duration
 
 	// Sender returns the PID of actor that sent currently processed message
-	Sender() *PID
+	Sender() *process.PID
 
 	// Become replaces the actors current Receive handler with a new handler
 	Become(Receive)
@@ -51,19 +52,19 @@ type Context interface {
 	UnbecomeStacked()
 
 	// Self returns the PID for the current actor
-	Self() *PID
+	Self() *process.PID
 
 	// Parent returns the PID for the current actors parent
-	Parent() *PID
+	Parent() *process.PID
 
 	// Spawn spawns a child actor using the given Props
-	Spawn(Props) *PID
+	Spawn(Props) *process.PID
 
 	// SpawnNamed spawns a named child actor using the given Props
-	SpawnNamed(Props, string) *PID
+	SpawnNamed(Props, string) *process.PID
 
 	// Returns a slice of the current actors children
-	Children() []*PID
+	Children() []*process.PID
 
 	// Next performs the next middleware or base Receive handler
 	Next()
@@ -93,7 +94,7 @@ func (cell *actorCell) Message() interface{} {
 	return cell.message
 }
 
-func (cell *actorCell) Sender() *PID {
+func (cell *actorCell) Sender() *process.PID {
 	userMessage, ok := cell.message.(*messageSender)
 	if ok {
 		return userMessage.Sender
@@ -149,15 +150,15 @@ func (cell *actorCell) ReceiveTimeout() time.Duration {
 
 type actorCell struct {
 	message        interface{}
-	parent         *PID
-	self           *PID
+	parent         *process.PID
+	self           *process.PID
 	actor          Actor
 	props          Props
 	behavior       behaviorStack
 	receive        Receive
-	children       PIDSet
-	watchers       PIDSet
-	watching       PIDSet
+	children       process.PIDSet
+	watchers       process.PIDSet
+	watching       process.PIDSet
 	stash          *linkedliststack.Stack
 	receiveIndex   int
 	stopping       bool
@@ -166,23 +167,23 @@ type actorCell struct {
 	t              *time.Timer
 }
 
-func (cell *actorCell) Children() []*PID {
-	r := make([]*PID, cell.children.Len())
-	cell.children.ForEach(func(i int, p PID) {
+func (cell *actorCell) Children() []*process.PID {
+	r := make([]*process.PID, cell.children.Len())
+	cell.children.ForEach(func(i int, p process.PID) {
 		r[i] = &p
 	})
 	return r
 }
 
-func (cell *actorCell) Self() *PID {
+func (cell *actorCell) Self() *process.PID {
 	return cell.self
 }
 
-func (cell *actorCell) Parent() *PID {
+func (cell *actorCell) Parent() *process.PID {
 	return cell.parent
 }
 
-func newActorCell(props Props, parent *PID) *actorCell {
+func newActorCell(props Props, parent *process.PID) *actorCell {
 	cell := &actorCell{
 		parent: parent,
 		props:  props,
@@ -220,7 +221,7 @@ func (cell *actorCell) incarnateActor() {
 	cell.receive = actor.Receive
 }
 
-func (cell *actorCell) InvokeSystemMessage(message SystemMessage) {
+func (cell *actorCell) InvokeSystemMessage(message process.SystemMessage) {
 	switch msg := message.(interface{}).(type) {
 	case *SuspendMailbox:
 		//pass
@@ -247,8 +248,8 @@ func (cell *actorCell) handleRestart(msg *Restart) {
 	cell.stopping = false
 	cell.restarting = true
 	cell.InvokeUserMessage(restartingMessage)
-	cell.children.ForEach(func(_ int, pid PID) {
-		pid.Stop()
+	cell.children.ForEach(func(_ int, pid process.PID) {
+		stopActor(&pid)
 	})
 	cell.tryRestartOrTerminate()
 }
@@ -258,8 +259,8 @@ func (cell *actorCell) handleStop(msg *Stop) {
 	cell.stopping = true
 	cell.restarting = false
 	cell.InvokeUserMessage(stoppingMessage)
-	cell.children.ForEach(func(_ int, pid PID) {
-		pid.Stop()
+	cell.children.ForEach(func(_ int, pid process.PID) {
+		stopActor(&pid)
 	})
 	cell.tryRestartOrTerminate()
 }
@@ -282,16 +283,17 @@ func (cell *actorCell) handleFailure(msg *Failure) {
 	cell.props.Supervisor().HandleFailure(cell, msg.Who, msg.Reason)
 }
 
-func (cell *actorCell) EscalateFailure(who *PID, reason interface{}) {
+func (cell *actorCell) EscalateFailure(who *process.PID, reason interface{}) {
 	if cell.Parent() == nil {
 		log.Printf("[ACTOR] '%v' Cannot escalate failure from root actor; stopping instead", cell.debugString())
-		cell.Self().sendSystemMessage(stopMessage)
+
+		sendSystemMessage(cell.self, stopMessage)
 		return
 	}
 	//suspend self
-	cell.Self().sendSystemMessage(suspendMailboxMessage)
+	sendSystemMessage(cell.self, suspendMailboxMessage)
 	//send failure to parent
-	cell.Parent().sendSystemMessage(&Failure{Reason: reason, Who: who})
+	sendSystemMessage(cell.parent, &Failure{Reason: reason, Who: who})
 }
 
 func (cell *actorCell) tryRestartOrTerminate() {
@@ -324,15 +326,16 @@ func (cell *actorCell) restart() {
 			cell.InvokeUserMessage(msg)
 		}
 	}
-	cell.self.sendSystemMessage(resumeMailboxMessage)
+	sendSystemMessage(cell.self, resumeMailboxMessage)
 }
 
 func (cell *actorCell) stopped() {
-	ProcessRegistry.Remove(cell.self)
+	process.ProcessRegistry.Remove(cell.self)
 	cell.InvokeUserMessage(stoppedMessage)
 	otherStopped := &Terminated{Who: cell.self}
-	cell.watchers.ForEach(func(i int, pid PID) {
-		pid.sendSystemMessage(otherStopped)
+	cell.watchers.ForEach(func(i int, pid process.PID) {
+		ref, _ := process.ProcessRegistry.Get(&pid)
+		ref.SendSystemMessage(&pid, otherStopped)
 	})
 }
 
@@ -376,8 +379,8 @@ func (cell *actorCell) InvokeUserMessage(md interface{}) {
 			} else {
 				//TODO: Akka recursively suspends all children also on failure
 				//Not sure if I think this is the right way to go, why do children need to wait for their parents failed state to recover?
-				cell.self.sendSystemMessage(suspendMailboxMessage)
-				cell.parent.sendSystemMessage(failure)
+				sendSystemMessage(cell.self, suspendMailboxMessage)
+				sendSystemMessage(cell.parent, failure)
 			}
 		}
 	}()
@@ -414,7 +417,7 @@ func (cell *actorCell) InvokeUserMessage(md interface{}) {
 func (cell *actorCell) AutoReceiveOrUser() {
 	switch cell.Message().(type) {
 	case *PoisonPill:
-		cell.self.Stop()
+		sendSystemMessage(cell.self, stopMessage)
 	default:
 		cell.receive(cell)
 	}
@@ -437,15 +440,15 @@ func (cell *actorCell) UnbecomeStacked() {
 	cell.receive, _ = cell.behavior.Pop()
 }
 
-func (cell *actorCell) Watch(who *PID) {
-	who.sendSystemMessage(&Watch{
+func (cell *actorCell) Watch(who *process.PID) {
+	sendSystemMessage(who, &Watch{
 		Watcher: cell.self,
 	})
 	cell.watching.Add(who)
 }
 
-func (cell *actorCell) Unwatch(who *PID) {
-	who.sendSystemMessage(&Unwatch{
+func (cell *actorCell) Unwatch(who *process.PID) {
+	sendSystemMessage(who, &Unwatch{
 		Watcher: cell.self,
 	})
 	cell.watching.Remove(who)
@@ -458,12 +461,12 @@ func (cell *actorCell) Respond(response interface{}) {
 	cell.Sender().Tell(response)
 }
 
-func (cell *actorCell) Spawn(props Props) *PID {
-	return cell.SpawnNamed(props, ProcessRegistry.NextId())
+func (cell *actorCell) Spawn(props Props) *process.PID {
+	return cell.SpawnNamed(props, process.ProcessRegistry.NextId())
 }
 
-func (cell *actorCell) SpawnNamed(props Props, name string) *PID {
-	pid := props.spawn(cell.self.Id + "/" + name, cell.self)
+func (cell *actorCell) SpawnNamed(props Props, name string) *process.PID {
+	pid := props.spawn(cell.self.Id+"/"+name, cell.self)
 	cell.children.Add(pid)
 	cell.Watch(pid)
 	return pid

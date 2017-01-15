@@ -1,4 +1,4 @@
-package actor
+package process
 
 import (
 	"log"
@@ -28,26 +28,6 @@ func (pid *PID) RequestFuture(message interface{}, timeout time.Duration) *Futur
 	future := NewFuture(timeout)
 	ref.SendUserMessage(pid, message, future.PID())
 	return future
-}
-
-func (pid *PID) sendSystemMessage(message SystemMessage) {
-	ref, _ := ProcessRegistry.Get(pid)
-	ref.SendSystemMessage(pid, message)
-}
-
-func (pid *PID) StopFuture() *Future {
-	future := NewFuture(10 * time.Second)
-
-	pid.sendSystemMessage(&Watch{Watcher: future.PID()})
-	pid.Stop()
-
-	return future
-}
-
-//Stop the given PID
-func (pid *PID) Stop() {
-	ref, _ := ProcessRegistry.Get(pid)
-	ref.Stop(pid)
 }
 
 func pidFromKey(key string, p *PID) {

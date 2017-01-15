@@ -1,5 +1,7 @@
 package actor
 
+import "github.com/AsynkronIT/protoactor-go/process"
+
 type AutoReceiveMessage interface {
 	AutoReceiveMessage()
 }
@@ -27,7 +29,7 @@ type Stop struct{}
 type ResumeMailbox struct{}
 type SuspendMailbox struct{}
 type Failure struct {
-	Who    *PID
+	Who    *process.PID
 	Reason interface{}
 }
 

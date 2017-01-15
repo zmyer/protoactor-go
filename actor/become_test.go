@@ -30,7 +30,7 @@ func (EchoBecomeActor) Other(context Context) {
 
 func TestActorCanBecome(t *testing.T) {
 	actor := Spawn(FromProducer(NewEchoBecomeActor))
-	defer actor.Stop()
+	defer stopActor(actor)
 	actor.Tell(BecomeMessage{})
 	result := actor.RequestFuture(EchoRequest{}, testTimeout)
 	if _, err := result.Result(); err != nil {

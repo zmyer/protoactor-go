@@ -3,6 +3,8 @@ package actor
 import (
 	"sync"
 	"testing"
+
+	"github.com/AsynkronIT/protoactor-go/process"
 )
 
 type actorWithSupervisor struct {
@@ -17,7 +19,7 @@ func (a *actorWithSupervisor) Receive(ctx Context) {
 	}
 }
 
-func (a *actorWithSupervisor) HandleFailure(supervisor Supervisor, child *PID, reason interface{}) {
+func (a *actorWithSupervisor) HandleFailure(supervisor Supervisor, child *process.PID, reason interface{}) {
 	a.wg.Done()
 }
 

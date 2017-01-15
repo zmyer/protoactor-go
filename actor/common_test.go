@@ -6,6 +6,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/AsynkronIT/protoactor-go/process"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -16,9 +17,9 @@ func init() {
 	log.SetOutput(ioutil.Discard)
 }
 
-func spawnMockProcess(name string) (*PID, *mockProcess) {
+func spawnMockProcess(name string) (*process.PID, *mockProcess) {
 	p := &mockProcess{}
-	pid, ok := ProcessRegistry.Add(p, name)
+	pid, ok := process.ProcessRegistry.Add(p, name)
 	if !ok {
 		panic(fmt.Errorf("did not spawn named process '%s'", name))
 	}
@@ -26,21 +27,21 @@ func spawnMockProcess(name string) (*PID, *mockProcess) {
 	return pid, p
 }
 
-func removeMockProcess(pid *PID) {
-	ProcessRegistry.Remove(pid)
+func removeMockProcess(pid *process.PID) {
+	process.ProcessRegistry.Remove(pid)
 }
 
 type mockProcess struct {
 	mock.Mock
 }
 
-func (m *mockProcess) SendUserMessage(pid *PID, message interface{}, sender *PID) {
+func (m *mockProcess) SendUserMessage(pid *process.PID, message interface{}, sender *process.PID) {
 	m.Called(pid, message, sender)
 }
-func (m *mockProcess) SendSystemMessage(pid *PID, message SystemMessage) {
+func (m *mockProcess) SendSystemMessage(pid *process.PID, message process.SystemMessage) {
 	m.Called(pid, message)
 }
-func (m *mockProcess) Stop(pid *PID) {
+func (m *mockProcess) Stop(pid *process.PID) {
 	m.Called(pid)
 }
 
@@ -48,11 +49,11 @@ type mockContext struct {
 	mock.Mock
 }
 
-func (m *mockContext) Watch(pid *PID) {
+func (m *mockContext) Watch(pid *process.PID) {
 	m.Called(pid)
 }
 
-func (m *mockContext) Unwatch(pid *PID) {
+func (m *mockContext) Unwatch(pid *process.PID) {
 	m.Called(pid)
 }
 
@@ -69,9 +70,9 @@ func (m *mockContext) ReceiveTimeout() time.Duration {
 	return args.Get(0).(time.Duration)
 }
 
-func (m *mockContext) Sender() *PID {
+func (m *mockContext) Sender() *process.PID {
 	args := m.Called()
-	return args.Get(0).(*PID)
+	return args.Get(0).(*process.PID)
 }
 
 func (m *mockContext) Become(r Receive) {
@@ -86,29 +87,29 @@ func (m *mockContext) UnbecomeStacked() {
 	m.Called()
 }
 
-func (m *mockContext) Self() *PID {
+func (m *mockContext) Self() *process.PID {
 	args := m.Called()
-	return args.Get(0).(*PID)
+	return args.Get(0).(*process.PID)
 }
 
-func (m *mockContext) Parent() *PID {
+func (m *mockContext) Parent() *process.PID {
 	args := m.Called()
-	return args.Get(0).(*PID)
+	return args.Get(0).(*process.PID)
 }
 
-func (m *mockContext) Spawn(p Props) *PID {
+func (m *mockContext) Spawn(p Props) *process.PID {
 	args := m.Called(p)
-	return args.Get(0).(*PID)
+	return args.Get(0).(*process.PID)
 }
 
-func (m *mockContext) SpawnNamed(p Props, name string) *PID {
+func (m *mockContext) SpawnNamed(p Props, name string) *process.PID {
 	args := m.Called(p, name)
-	return args.Get(0).(*PID)
+	return args.Get(0).(*process.PID)
 }
 
-func (m *mockContext) Children() []*PID {
+func (m *mockContext) Children() []*process.PID {
 	args := m.Called()
-	return args.Get(0).([]*PID)
+	return args.Get(0).([]*process.PID)
 }
 
 func (m *mockContext) Next() {

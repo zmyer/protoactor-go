@@ -3,24 +3,23 @@ package actor
 import (
 	"testing"
 
+	"github.com/AsynkronIT/protoactor-go/process"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestDeadLetterAfterStop(t *testing.T) {
 	actor := Spawn(FromProducer(NewBlackHoleActor))
 	done := false
-	sub := EventStream.Subscribe(func(msg interface{}) {
-		if deadLetter, ok := msg.(*DeadLetter); ok {
+	sub := process.EventStream.Subscribe(func(msg interface{}) {
+		if deadLetter, ok := msg.(*process.DeadLetter); ok {
 			if deadLetter.PID == actor {
 				done = true
 			}
 		}
 	})
-	defer EventStream.Unsubscribe(sub)
+	defer process.EventStream.Unsubscribe(sub)
 
-	actor.
-		StopFuture().
-		Wait()
+	stopActorFuture(actor).Wait()
 
 	actor.Tell("hello")
 

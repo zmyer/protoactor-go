@@ -3,6 +3,7 @@ package actor
 import (
 	"testing"
 
+	"github.com/AsynkronIT/protoactor-go/process"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -13,13 +14,13 @@ func TestActorCell_SpawnNamed(t *testing.T) {
 	p.On("SendSystemMessage", pid, mock.Anything)
 
 	props := Props{
-		spawner: func(id string, _ Props, _ *PID) *PID {
+		spawner: func(id string, _ Props, _ *process.PID) *process.PID {
 			assert.Equal(t, "foo/bar", id)
-			return NewLocalPID(id)
+			return process.NewLocalPID(id)
 		},
 	}
 
-	parent := &actorCell{self: NewLocalPID("foo")}
+	parent := &actorCell{self: process.NewLocalPID("foo")}
 	parent.SpawnNamed(props, "bar")
 	mock.AssertExpectationsForObjects(t, p)
 }
