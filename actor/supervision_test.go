@@ -19,7 +19,7 @@ func (a *actorWithSupervisor) Receive(ctx Context) {
 	}
 }
 
-func (a *actorWithSupervisor) HandleFailure(supervisor Supervisor, child *process.PID, reason interface{}) {
+func (a *actorWithSupervisor) HandleFailure(supervisor Supervisor, child *process.ID, reason interface{}) {
 	a.wg.Done()
 }
 

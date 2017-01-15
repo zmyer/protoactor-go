@@ -7,12 +7,12 @@ var (
 )
 
 type DeadLetter struct {
-	PID     *PID
+	PID     *ID
 	Message interface{}
-	Sender  *PID
+	Sender  *ID
 }
 
-func (*deadLetterProcess) SendUserMessage(pid *PID, message interface{}, sender *PID) {
+func (*deadLetterProcess) SendUserMessage(pid *ID, message interface{}, sender *ID) {
 	EventStream.Publish(&DeadLetter{
 		PID:     pid,
 		Message: message,
@@ -20,7 +20,7 @@ func (*deadLetterProcess) SendUserMessage(pid *PID, message interface{}, sender 
 	})
 }
 
-func (*deadLetterProcess) SendSystemMessage(pid *PID, message SystemMessage) {
+func (*deadLetterProcess) SendSystemMessage(pid *ID, message SystemMessage) {
 	EventStream.Publish(&DeadLetter{
 		PID:     pid,
 		Message: message,

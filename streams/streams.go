@@ -7,14 +7,14 @@ import (
 
 type UntypedStream struct {
 	c   chan interface{}
-	pid *process.PID
+	pid *process.ID
 }
 
 func (s *UntypedStream) C() <-chan interface{} {
 	return s.c
 }
 
-func (s *UntypedStream) PID() *process.PID {
+func (s *UntypedStream) PID() *process.ID {
 	return s.pid
 }
 

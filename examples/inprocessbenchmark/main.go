@@ -16,10 +16,10 @@ import (
 )
 
 type Msg struct {
-	replyTo *process.PID
+	replyTo *process.ID
 }
 type Start struct {
-	Sender *process.PID
+	Sender *process.ID
 }
 type Started struct{}
 
@@ -113,8 +113,8 @@ func main() {
 			WithMailbox(actor.NewUnboundedMailbox()).
 			WithDispatcher(d)
 
-		clients := make([]*process.PID, 0)
-		echos := make([]*process.PID, 0)
+		clients := make([]*process.ID, 0)
+		echos := make([]*process.ID, 0)
 		clientCount := runtime.NumCPU() * 2
 		for i := 0; i < clientCount; i++ {
 			client := actor.Spawn(clientProps)

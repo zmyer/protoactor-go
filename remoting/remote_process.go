@@ -10,20 +10,20 @@ import (
 )
 
 type remoteProcess struct {
-	pid *process.PID
+	pid *process.ID
 }
 
-func newRemoteProcess(pid *process.PID) process.Process {
+func newRemoteProcess(pid *process.ID) process.Process {
 	return &remoteProcess{
 		pid: pid,
 	}
 }
 
-func (ref *remoteProcess) SendUserMessage(pid *process.PID, message interface{}, sender *process.PID) {
+func (ref *remoteProcess) SendUserMessage(pid *process.ID, message interface{}, sender *process.ID) {
 	sendRemoteMessage(pid, message, sender)
 }
 
-func sendRemoteMessage(pid *process.PID, message interface{}, sender *process.PID) {
+func sendRemoteMessage(pid *process.ID, message interface{}, sender *process.ID) {
 	switch msg := message.(type) {
 	case proto.Message:
 		envelope, _ := serialize(msg, pid, sender)
@@ -33,7 +33,7 @@ func sendRemoteMessage(pid *process.PID, message interface{}, sender *process.PI
 	}
 }
 
-func (ref *remoteProcess) SendSystemMessage(pid *process.PID, message process.SystemMessage) {
+func (ref *remoteProcess) SendSystemMessage(pid *process.ID, message process.SystemMessage) {
 
 	//intercept any Watch messages and direct them to the endpoint manager
 	switch msg := message.(type) {
@@ -54,6 +54,6 @@ func (ref *remoteProcess) SendSystemMessage(pid *process.PID, message process.Sy
 	}
 }
 
-func (ref *remoteProcess) Stop(pid *process.PID) {
+func (ref *remoteProcess) Stop(pid *process.ID) {
 	ref.SendSystemMessage(pid, &actor.Stop{})
 }

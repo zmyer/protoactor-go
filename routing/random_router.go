@@ -16,7 +16,7 @@ type RandomPoolRouter struct {
 
 type RandomRouterState struct {
 	routees *process.PIDSet
-	values  []process.PID
+	values  []process.ID
 }
 
 func (state *RandomRouterState) SetRoutees(routees *process.PIDSet) {
@@ -28,7 +28,7 @@ func (state *RandomRouterState) GetRoutees() *process.PIDSet {
 	return state.routees
 }
 
-func (state *RandomRouterState) RouteMessage(message interface{}, sender *process.PID) {
+func (state *RandomRouterState) RouteMessage(message interface{}, sender *process.ID) {
 	l := len(state.values)
 	r := rand.Intn(l)
 	pid := state.values[r]
@@ -41,7 +41,7 @@ func NewRandomPool(poolSize int) PoolRouterConfig {
 	return r
 }
 
-func NewRandomGroup(routees ...*process.PID) GroupRouterConfig {
+func NewRandomGroup(routees ...*process.ID) GroupRouterConfig {
 	r := &RandomGroupRouter{}
 	r.Routees = process.NewPIDSet(routees...)
 	return r

@@ -9,7 +9,7 @@ import (
 )
 
 type PassivationAware interface {
-	Init(*process.PID, time.Duration)
+	Init(*process.ID, time.Duration)
 	Reset(time.Duration)
 	Cancel()
 }
@@ -28,7 +28,7 @@ func (state *PassivationHolder) Reset(duration time.Duration) {
 	}
 }
 
-func (state *PassivationHolder) Init(pid *process.PID, duration time.Duration) {
+func (state *PassivationHolder) Init(pid *process.ID, duration time.Duration) {
 	state.timer = time.NewTimer(duration)
 	state.done = false
 	go func() {

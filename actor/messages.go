@@ -29,7 +29,7 @@ type Stop struct{}
 type ResumeMailbox struct{}
 type SuspendMailbox struct{}
 type Failure struct {
-	Who    *process.PID
+	Who    *process.ID
 	Reason interface{}
 }
 

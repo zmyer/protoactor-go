@@ -17,14 +17,14 @@ func newEndpointWatcher(address string) actor.Producer {
 
 type endpointWatcher struct {
 	address string
-	watched map[string]*process.PID //key is the watching PID string, value is the watched PID
-	watcher map[string]*process.PID //key is the watched PID string, value is the watching PID
+	watched map[string]*process.ID //key is the watching PID string, value is the watched PID
+	watcher map[string]*process.ID //key is the watched PID string, value is the watching PID
 }
 
 func (state *endpointWatcher) initialize() {
 	log.Printf("[REMOTING] Started EndpointWatcher for address %v", state.address)
-	state.watched = make(map[string]*process.PID)
-	state.watcher = make(map[string]*process.PID)
+	state.watched = make(map[string]*process.ID)
+	state.watcher = make(map[string]*process.ID)
 }
 
 func (state *endpointWatcher) Receive(ctx actor.Context) {

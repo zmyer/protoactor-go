@@ -14,7 +14,7 @@ import (
 
 type messageSender struct {
 	Message interface{}
-	Sender  *process.PID
+	Sender  *process.ID
 }
 
 type MessageInvoker interface {
@@ -24,10 +24,10 @@ type MessageInvoker interface {
 
 type Context interface {
 	// Watch registers the actor as a monitor for the specified PID
-	Watch(*process.PID)
+	Watch(*process.ID)
 
 	// Unwatch unregisters the actor as a monitor for the specified PID
-	Unwatch(*process.PID)
+	Unwatch(*process.ID)
 
 	// Message returns the current message to be processed
 	Message() interface{}
@@ -40,7 +40,7 @@ type Context interface {
 	ReceiveTimeout() time.Duration
 
 	// Sender returns the PID of actor that sent currently processed message
-	Sender() *process.PID
+	Sender() *process.ID
 
 	// Become replaces the actors current Receive handler with a new handler
 	Become(Receive)
@@ -52,19 +52,19 @@ type Context interface {
 	UnbecomeStacked()
 
 	// Self returns the PID for the current actor
-	Self() *process.PID
+	Self() *process.ID
 
 	// Parent returns the PID for the current actors parent
-	Parent() *process.PID
+	Parent() *process.ID
 
 	// Spawn spawns a child actor using the given Props
-	Spawn(Props) *process.PID
+	Spawn(Props) *process.ID
 
 	// SpawnNamed spawns a named child actor using the given Props
-	SpawnNamed(Props, string) *process.PID
+	SpawnNamed(Props, string) *process.ID
 
 	// Returns a slice of the current actors children
-	Children() []*process.PID
+	Children() []*process.ID
 
 	// Next performs the next middleware or base Receive handler
 	Next()
@@ -94,7 +94,7 @@ func (cell *actorCell) Message() interface{} {
 	return cell.message
 }
 
-func (cell *actorCell) Sender() *process.PID {
+func (cell *actorCell) Sender() *process.ID {
 	userMessage, ok := cell.message.(*messageSender)
 	if ok {
 		return userMessage.Sender
@@ -150,8 +150,8 @@ func (cell *actorCell) ReceiveTimeout() time.Duration {
 
 type actorCell struct {
 	message        interface{}
-	parent         *process.PID
-	self           *process.PID
+	parent         *process.ID
+	self           *process.ID
 	actor          Actor
 	props          Props
 	behavior       behaviorStack
@@ -167,23 +167,23 @@ type actorCell struct {
 	t              *time.Timer
 }
 
-func (cell *actorCell) Children() []*process.PID {
-	r := make([]*process.PID, cell.children.Len())
-	cell.children.ForEach(func(i int, p process.PID) {
+func (cell *actorCell) Children() []*process.ID {
+	r := make([]*process.ID, cell.children.Len())
+	cell.children.ForEach(func(i int, p process.ID) {
 		r[i] = &p
 	})
 	return r
 }
 
-func (cell *actorCell) Self() *process.PID {
+func (cell *actorCell) Self() *process.ID {
 	return cell.self
 }
 
-func (cell *actorCell) Parent() *process.PID {
+func (cell *actorCell) Parent() *process.ID {
 	return cell.parent
 }
 
-func newActorCell(props Props, parent *process.PID) *actorCell {
+func newActorCell(props Props, parent *process.ID) *actorCell {
 	cell := &actorCell{
 		parent: parent,
 		props:  props,
@@ -248,7 +248,7 @@ func (cell *actorCell) handleRestart(msg *Restart) {
 	cell.stopping = false
 	cell.restarting = true
 	cell.InvokeUserMessage(restartingMessage)
-	cell.children.ForEach(func(_ int, pid process.PID) {
+	cell.children.ForEach(func(_ int, pid process.ID) {
 		StopActor(&pid)
 	})
 	cell.tryRestartOrTerminate()
@@ -259,7 +259,7 @@ func (cell *actorCell) handleStop(msg *Stop) {
 	cell.stopping = true
 	cell.restarting = false
 	cell.InvokeUserMessage(stoppingMessage)
-	cell.children.ForEach(func(_ int, pid process.PID) {
+	cell.children.ForEach(func(_ int, pid process.ID) {
 		StopActor(&pid)
 	})
 	cell.tryRestartOrTerminate()
@@ -283,7 +283,7 @@ func (cell *actorCell) handleFailure(msg *Failure) {
 	cell.props.Supervisor().HandleFailure(cell, msg.Who, msg.Reason)
 }
 
-func (cell *actorCell) EscalateFailure(who *process.PID, reason interface{}) {
+func (cell *actorCell) EscalateFailure(who *process.ID, reason interface{}) {
 	if cell.Parent() == nil {
 		log.Printf("[ACTOR] '%v' Cannot escalate failure from root actor; stopping instead", cell.debugString())
 
@@ -333,7 +333,7 @@ func (cell *actorCell) stopped() {
 	process.Registry.Remove(cell.self)
 	cell.InvokeUserMessage(stoppedMessage)
 	otherStopped := &Terminated{Who: cell.self}
-	cell.watchers.ForEach(func(i int, pid process.PID) {
+	cell.watchers.ForEach(func(i int, pid process.ID) {
 		ref, _ := process.Registry.Get(&pid)
 		ref.SendSystemMessage(&pid, otherStopped)
 	})
@@ -440,14 +440,14 @@ func (cell *actorCell) UnbecomeStacked() {
 	cell.receive, _ = cell.behavior.Pop()
 }
 
-func (cell *actorCell) Watch(who *process.PID) {
+func (cell *actorCell) Watch(who *process.ID) {
 	sendSystemMessage(who, &Watch{
 		Watcher: cell.self,
 	})
 	cell.watching.Add(who)
 }
 
-func (cell *actorCell) Unwatch(who *process.PID) {
+func (cell *actorCell) Unwatch(who *process.ID) {
 	sendSystemMessage(who, &Unwatch{
 		Watcher: cell.self,
 	})
@@ -461,11 +461,11 @@ func (cell *actorCell) Respond(response interface{}) {
 	cell.Sender().Tell(response)
 }
 
-func (cell *actorCell) Spawn(props Props) *process.PID {
+func (cell *actorCell) Spawn(props Props) *process.ID {
 	return cell.SpawnNamed(props, process.Registry.NextId())
 }
 
-func (cell *actorCell) SpawnNamed(props Props, name string) *process.PID {
+func (cell *actorCell) SpawnNamed(props Props, name string) *process.ID {
 	pid := props.spawn(cell.self.Id+"/"+name, cell.self)
 	cell.children.Add(pid)
 	cell.Watch(pid)

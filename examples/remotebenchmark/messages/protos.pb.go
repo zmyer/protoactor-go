@@ -48,14 +48,14 @@ func (*Start) ProtoMessage()               {}
 func (*Start) Descriptor() ([]byte, []int) { return fileDescriptorProtos, []int{0} }
 
 type StartRemote struct {
-	Sender *process.PID `protobuf:"bytes,1,opt,name=Sender,json=sender" json:"Sender,omitempty"`
+	Sender *process.ID `protobuf:"bytes,1,opt,name=Sender,json=sender" json:"Sender,omitempty"`
 }
 
 func (m *StartRemote) Reset()                    { *m = StartRemote{} }
 func (*StartRemote) ProtoMessage()               {}
 func (*StartRemote) Descriptor() ([]byte, []int) { return fileDescriptorProtos, []int{1} }
 
-func (m *StartRemote) GetSender() *process.PID {
+func (m *StartRemote) GetSender() *process.ID {
 	if m != nil {
 		return m.Sender
 	}
@@ -559,7 +559,7 @@ func (m *StartRemote) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Sender == nil {
-				m.Sender = &process.PID{}
+				m.Sender = &process.ID{}
 			}
 			if err := m.Sender.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err

@@ -43,15 +43,15 @@ var _ = math.Inf
 const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
 
 type TakeOwnership struct {
-	Pid  *process.PID `protobuf:"bytes,1,opt,name=pid" json:"pid,omitempty"`
-	Name string       `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Pid  *process.ID `protobuf:"bytes,1,opt,name=pid" json:"pid,omitempty"`
+	Name string      `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 }
 
 func (m *TakeOwnership) Reset()                    { *m = TakeOwnership{} }
 func (*TakeOwnership) ProtoMessage()               {}
 func (*TakeOwnership) Descriptor() ([]byte, []int) { return fileDescriptorProtos, []int{0} }
 
-func (m *TakeOwnership) GetPid() *process.PID {
+func (m *TakeOwnership) GetPid() *process.ID {
 	if m != nil {
 		return m.Pid
 	}
@@ -591,7 +591,7 @@ func (m *TakeOwnership) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Pid == nil {
-				m.Pid = &process.PID{}
+				m.Pid = &process.ID{}
 			}
 			if err := m.Pid.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err

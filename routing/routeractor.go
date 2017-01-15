@@ -38,14 +38,14 @@ func (a *routerActor) Receive(context actor.Context) {
 	case *BroadcastMessage:
 		msg := m.Message
 		sender := context.Sender()
-		a.state.GetRoutees().ForEach(func(i int, pid process.PID) {
+		a.state.GetRoutees().ForEach(func(i int, pid process.ID) {
 			pid.Request(msg, sender)
 		})
 
 	case *GetRoutees:
 		r := a.state.GetRoutees()
-		routees := make([]*process.PID, r.Len())
-		r.ForEach(func(i int, pid process.PID) {
+		routees := make([]*process.ID, r.Len())
+		r.ForEach(func(i int, pid process.ID) {
 			routees[i] = &pid
 		})
 

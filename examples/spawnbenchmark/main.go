@@ -26,7 +26,7 @@ var (
 type state struct {
 	sum     int
 	replies int
-	replyTo *process.PID
+	replyTo *process.ID
 }
 
 func newState() actor.Actor {

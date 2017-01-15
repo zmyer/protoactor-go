@@ -14,7 +14,7 @@ import (
 
 func notifyAll(clients *hashset.Set, message interface{}) {
 	for _, tmp := range clients.Values() {
-		client := tmp.(*process.PID)
+		client := tmp.(*process.ID)
 		client.Tell(message)
 	}
 }

@@ -29,7 +29,7 @@ type PoolRouter struct {
 }
 
 func (config *GroupRouter) OnStarted(context actor.Context, props actor.Props, router RouterState) {
-	config.Routees.ForEach(func(i int, pid process.PID) {
+	config.Routees.ForEach(func(i int, pid process.ID) {
 		context.Watch(&pid)
 	})
 	router.SetRoutees(config.Routees)
@@ -44,7 +44,7 @@ func (config *PoolRouter) OnStarted(context actor.Context, props actor.Props, ro
 }
 
 func spawner(config RouterConfig) actor.Spawner {
-	return func(id string, props actor.Props, parent *process.PID) *process.PID {
+	return func(id string, props actor.Props, parent *process.ID) *process.ID {
 		return spawn(id, config, props, parent)
 	}
 }

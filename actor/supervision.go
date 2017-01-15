@@ -11,13 +11,13 @@ const (
 	EscalateDirective
 )
 
-type Decider func(child *process.PID, cause interface{}) Directive
+type Decider func(child *process.ID, cause interface{}) Directive
 
 //TODO: as we dont allow remote children or remote SupervisionStrategy
 //Instead of letting the parent keep track of child restart stats.
 //this info could actually go into each actor, sending it back to the parent as part of the Failure message
 type SupervisorStrategy interface {
-	HandleFailure(supervisor Supervisor, child *process.PID, cause interface{})
+	HandleFailure(supervisor Supervisor, child *process.ID, cause interface{})
 }
 
 type OneForOneStrategy struct {
@@ -27,11 +27,11 @@ type OneForOneStrategy struct {
 }
 
 type Supervisor interface {
-	Children() []*process.PID
-	EscalateFailure(who *process.PID, reason interface{})
+	Children() []*process.ID
+	EscalateFailure(who *process.ID, reason interface{})
 }
 
-func (strategy *OneForOneStrategy) HandleFailure(supervisor Supervisor, child *process.PID, reason interface{}) {
+func (strategy *OneForOneStrategy) HandleFailure(supervisor Supervisor, child *process.ID, reason interface{}) {
 	directive := strategy.decider(child, reason)
 
 	switch directive {
@@ -59,7 +59,7 @@ func NewOneForOneStrategy(maxNrOfRetries int, withinTimeRangeMilliseconds int, d
 	}
 }
 
-func DefaultDecider(child *process.PID, reason interface{}) Directive {
+func DefaultDecider(child *process.ID, reason interface{}) Directive {
 	return RestartDirective
 }
 

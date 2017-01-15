@@ -7,7 +7,7 @@ import (
 	"github.com/AsynkronIT/protoactor-go/process"
 )
 
-var endpointManagerPID *process.PID
+var endpointManagerPID *process.ID
 
 func newEndpointManager(config *remotingConfig) actor.Producer {
 	return func() actor.Actor {
@@ -33,8 +33,8 @@ func spawnEndpointManager(config *remotingConfig) {
 }
 
 type endpoint struct {
-	writer  *process.PID
-	watcher *process.PID
+	writer  *process.ID
+	watcher *process.ID
 }
 
 type endpointManager struct {
@@ -83,7 +83,7 @@ func (state *endpointManager) ensureConnected(address string, ctx actor.Context)
 	return e
 }
 
-func (state *endpointManager) spawnEndpointWriter(address string, ctx actor.Context) *process.PID {
+func (state *endpointManager) spawnEndpointWriter(address string, ctx actor.Context) *process.ID {
 	props := actor.
 		FromProducer(newEndpointWriter(address, state.config)).
 		WithMailbox(newEndpointWriterMailbox(state.config.endpointWriterBatchSize, state.config.endpointWriterQueueSize))
@@ -91,7 +91,7 @@ func (state *endpointManager) spawnEndpointWriter(address string, ctx actor.Cont
 	return pid
 }
 
-func (state *endpointManager) spawnEndpointWatcher(address string, ctx actor.Context) *process.PID {
+func (state *endpointManager) spawnEndpointWatcher(address string, ctx actor.Context) *process.ID {
 	props := actor.
 		FromProducer(newEndpointWatcher(address))
 	pid := ctx.Spawn(props)

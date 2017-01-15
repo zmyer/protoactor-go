@@ -42,14 +42,14 @@ var _ = math.Inf
 const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
 
 type AddRoutee struct {
-	PID *process.PID `protobuf:"bytes,1,opt,name=PID,json=pID" json:"PID,omitempty"`
+	PID *process.ID `protobuf:"bytes,1,opt,name=PID,json=pID" json:"PID,omitempty"`
 }
 
 func (m *AddRoutee) Reset()                    { *m = AddRoutee{} }
 func (*AddRoutee) ProtoMessage()               {}
 func (*AddRoutee) Descriptor() ([]byte, []int) { return fileDescriptorProtos, []int{0} }
 
-func (m *AddRoutee) GetPID() *process.PID {
+func (m *AddRoutee) GetPID() *process.ID {
 	if m != nil {
 		return m.PID
 	}
@@ -57,14 +57,14 @@ func (m *AddRoutee) GetPID() *process.PID {
 }
 
 type RemoveRoutee struct {
-	PID *process.PID `protobuf:"bytes,1,opt,name=PID,json=pID" json:"PID,omitempty"`
+	PID *process.ID `protobuf:"bytes,1,opt,name=PID,json=pID" json:"PID,omitempty"`
 }
 
 func (m *RemoveRoutee) Reset()                    { *m = RemoveRoutee{} }
 func (*RemoveRoutee) ProtoMessage()               {}
 func (*RemoveRoutee) Descriptor() ([]byte, []int) { return fileDescriptorProtos, []int{1} }
 
-func (m *RemoveRoutee) GetPID() *process.PID {
+func (m *RemoveRoutee) GetPID() *process.ID {
 	if m != nil {
 		return m.PID
 	}
@@ -87,14 +87,14 @@ func (*GetRoutees) ProtoMessage()               {}
 func (*GetRoutees) Descriptor() ([]byte, []int) { return fileDescriptorProtos, []int{3} }
 
 type Routees struct {
-	PIDs []*process.PID `protobuf:"bytes,1,rep,name=PIDs,json=pIDs" json:"PIDs,omitempty"`
+	PIDs []*process.ID `protobuf:"bytes,1,rep,name=PIDs,json=pIDs" json:"PIDs,omitempty"`
 }
 
 func (m *Routees) Reset()                    { *m = Routees{} }
 func (*Routees) ProtoMessage()               {}
 func (*Routees) Descriptor() ([]byte, []int) { return fileDescriptorProtos, []int{4} }
 
-func (m *Routees) GetPIDs() []*process.PID {
+func (m *Routees) GetPIDs() []*process.ID {
 	if m != nil {
 		return m.PIDs
 	}
@@ -668,7 +668,7 @@ func (m *AddRoutee) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.PID == nil {
-				m.PID = &process.PID{}
+				m.PID = &process.ID{}
 			}
 			if err := m.PID.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -751,7 +751,7 @@ func (m *RemoveRoutee) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.PID == nil {
-				m.PID = &process.PID{}
+				m.PID = &process.ID{}
 			}
 			if err := m.PID.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -952,7 +952,7 @@ func (m *Routees) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.PIDs = append(m.PIDs, &process.PID{})
+			m.PIDs = append(m.PIDs, &process.ID{})
 			if err := m.PIDs[len(m.PIDs)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}

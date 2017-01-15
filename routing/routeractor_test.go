@@ -72,7 +72,7 @@ func TestRouterActor_Receive_BroadcastMessage(t *testing.T) {
 
 	c := new(mockContext)
 	c.On("Message").Return(&BroadcastMessage{"hi"})
-	c.On("Sender").Return((*process.PID)(nil))
+	c.On("Sender").Return((*process.ID)(nil))
 
 	state.On("GetRoutees").Return(process.NewPIDSet(p1, p2))
 

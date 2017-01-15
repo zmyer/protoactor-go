@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	kindPIDMap map[string]*process.PID
+	kindPIDMap map[string]*process.ID
 )
 
 func subscribePartitionKindsToEventStream() {
@@ -26,12 +26,12 @@ func subscribePartitionKindsToEventStream() {
 	})
 }
 
-func spawnPartitionActor(kind string) *process.PID {
+func spawnPartitionActor(kind string) *process.ID {
 	partitionPid := actor.SpawnNamed(actor.FromProducer(newPartitionActor(kind)), "#partition-"+kind)
 	return partitionPid
 }
 
-func partitionForKind(address, kind string) *process.PID {
+func partitionForKind(address, kind string) *process.ID {
 	pid := process.NewPID(address, "#partition-"+kind)
 	return pid
 }
@@ -39,14 +39,14 @@ func partitionForKind(address, kind string) *process.PID {
 func newPartitionActor(kind string) actor.Producer {
 	return func() actor.Actor {
 		return &partitionActor{
-			partition: make(map[string]*process.PID),
+			partition: make(map[string]*process.ID),
 			kind:      kind,
 		}
 	}
 }
 
 type partitionActor struct {
-	partition map[string]*process.PID //actor/grain name to PID
+	partition map[string]*process.ID //actor/grain name to PID
 	kind      string
 }
 

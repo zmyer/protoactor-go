@@ -47,7 +47,7 @@ func newChildActor() actor.Actor {
 }
 
 func main() {
-	decider := func(child *process.PID, reason interface{}) actor.Directive {
+	decider := func(child *process.ID, reason interface{}) actor.Directive {
 		fmt.Println("handling failure for child")
 		return actor.StopDirective
 	}

@@ -12,7 +12,7 @@ func newLocalProcess(mailbox Mailbox) *localProcess {
 	}
 }
 
-func (ref *localProcess) SendUserMessage(pid *process.PID, message interface{}, sender *process.PID) {
+func (ref *localProcess) SendUserMessage(pid *process.ID, message interface{}, sender *process.ID) {
 	if sender != nil {
 		ref.mailbox.PostUserMessage(&messageSender{Message: message, Sender: sender})
 	} else {
@@ -20,10 +20,10 @@ func (ref *localProcess) SendUserMessage(pid *process.PID, message interface{}, 
 	}
 }
 
-func (ref *localProcess) SendSystemMessage(pid *process.PID, message process.SystemMessage) {
+func (ref *localProcess) SendSystemMessage(pid *process.ID, message process.SystemMessage) {
 	ref.mailbox.PostSystemMessage(message)
 }
 
-func (ref *localProcess) Stop(pid *process.PID) {
+func (ref *localProcess) Stop(pid *process.ID) {
 	ref.SendSystemMessage(pid, stopMessage)
 }

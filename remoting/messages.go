@@ -7,16 +7,16 @@ type EndpointTerminated struct {
 }
 
 type remoteWatch struct {
-	Watcher *process.PID
-	Watchee *process.PID
+	Watcher *process.ID
+	Watchee *process.ID
 }
 
 type remoteUnwatch struct {
-	Watcher *process.PID
-	Watchee *process.PID
+	Watcher *process.ID
+	Watchee *process.ID
 }
 
 type remoteTerminate struct {
-	Watcher *process.PID
-	Watchee *process.PID
+	Watcher *process.ID
+	Watchee *process.ID
 }

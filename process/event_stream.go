@@ -38,7 +38,7 @@ func (es *eventStream) Subscribe(action Action) *Subscription {
 	return sub
 }
 
-func (es *eventStream) SubscribePID(predicate Predicate, pid *PID) *Subscription {
+func (es *eventStream) SubscribePID(predicate Predicate, pid *ID) *Subscription {
 	return es.Subscribe(func(msg interface{}) {
 		if predicate(msg) {
 			pid.Tell(msg)

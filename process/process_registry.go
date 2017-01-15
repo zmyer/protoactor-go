@@ -22,7 +22,7 @@ var (
 	}
 )
 
-type AddressResolver func(*PID) (Process, bool)
+type AddressResolver func(*ID) (Process, bool)
 
 func (pr *ProcessRegistryValue) RegisterAddressResolver(handler AddressResolver) {
 	pr.RemoteHandlers = append(pr.RemoteHandlers, handler)
@@ -55,9 +55,9 @@ func (pr *ProcessRegistryValue) NextId() string {
 	return uint64ToId(counter)
 }
 
-func (pr *ProcessRegistryValue) Add(process Process, id string) (*PID, bool) {
+func (pr *ProcessRegistryValue) Add(process Process, id string) (*ID, bool) {
 
-	pid := PID{
+	pid := ID{
 		Address: pr.Address,
 		Id:      id,
 	}
@@ -66,11 +66,11 @@ func (pr *ProcessRegistryValue) Add(process Process, id string) (*PID, bool) {
 	return &pid, absent
 }
 
-func (pr *ProcessRegistryValue) Remove(pid *PID) {
+func (pr *ProcessRegistryValue) Remove(pid *ID) {
 	pr.LocalPIDs.Remove(pid.Id)
 }
 
-func (pr *ProcessRegistryValue) Get(pid *PID) (Process, bool) {
+func (pr *ProcessRegistryValue) Get(pid *ID) (Process, bool) {
 	if pid == nil {
 		return deadLetter, false
 	}

@@ -11,7 +11,7 @@ import (
 
 var (
 	nameLookup   = make(map[string]actor.Props)
-	activatorPid *process.PID
+	activatorPid *process.ID
 )
 
 func spawnActivatorActor() {
@@ -34,7 +34,7 @@ func GetKnownKinds() []string {
 type activator struct {
 }
 
-func ActivatorForAddress(address string) *process.PID {
+func ActivatorForAddress(address string) *process.ID {
 	pid := process.NewPID(address, "activator")
 	return pid
 }
@@ -47,7 +47,7 @@ func SpawnFuture(address string, name string, kind string, timeout time.Duration
 	}, timeout)
 	return f
 }
-func Spawn(address string, name string, kind string, timeout time.Duration) (*process.PID, error) {
+func Spawn(address string, name string, kind string, timeout time.Duration) (*process.ID, error) {
 	activator := ActivatorForAddress(address)
 	res, err := activator.RequestFuture(&ActorPidRequest{
 		Name: name,

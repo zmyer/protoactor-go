@@ -15,7 +15,7 @@ type Provider struct {
 	bucket           *gocb.Bucket
 	bucketName       string
 	snapshotInterval int
-	writer           *process.PID
+	writer           *process.ID
 }
 
 func (provider *Provider) GetState() persistence.ProviderState {

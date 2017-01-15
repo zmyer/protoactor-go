@@ -33,7 +33,7 @@ func NewFuture(timeout time.Duration) *Future {
 }
 
 type Future struct {
-	pid  *PID
+	pid  *ID
 	cond *sync.Cond
 	// protected by cond
 	done   bool
@@ -43,12 +43,12 @@ type Future struct {
 }
 
 // PID to the backing actor for the Future result
-func (f *Future) PID() *PID {
+func (f *Future) PID() *ID {
 	return f.pid
 }
 
 // PipeTo starts a go routine and waits for the `Future.Result()`, then sends the result to the given `PID`
-func (f *Future) PipeTo(pid *PID) {
+func (f *Future) PipeTo(pid *ID) {
 	go func() {
 		res, err := f.Result()
 		if err != nil {
@@ -89,17 +89,17 @@ type futureProcess struct {
 	f *Future
 }
 
-func (ref *futureProcess) SendUserMessage(pid *PID, message interface{}, sender *PID) {
+func (ref *futureProcess) SendUserMessage(pid *ID, message interface{}, sender *ID) {
 	ref.f.result = message
 	ref.Stop(pid)
 }
 
-func (ref *futureProcess) SendSystemMessage(pid *PID, message SystemMessage) {
+func (ref *futureProcess) SendSystemMessage(pid *ID, message SystemMessage) {
 	ref.f.result = message
 	ref.Stop(pid)
 }
 
-func (ref *futureProcess) Stop(pid *PID) {
+func (ref *futureProcess) Stop(pid *ID) {
 	ref.f.cond.L.Lock()
 	if ref.f.done {
 		ref.f.cond.L.Unlock()

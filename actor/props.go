@@ -37,7 +37,7 @@ func (props Props) ProduceMailbox() Mailbox {
 	return props.mailboxProducer()
 }
 
-func (props Props) spawn(id string, parent *process.PID) *process.PID {
+func (props Props) spawn(id string, parent *process.ID) *process.ID {
 	if props.spawner != nil {
 		return props.spawner(id, props, parent)
 	}

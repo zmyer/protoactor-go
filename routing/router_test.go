@@ -39,7 +39,7 @@ type testGroupRouter struct {
 	mock.Mock
 }
 
-func newGroupRouterConfig(routees ...*process.PID) *testGroupRouter {
+func newGroupRouterConfig(routees ...*process.ID) *testGroupRouter {
 	r := new(testGroupRouter)
 	r.Routees = process.NewPIDSet(routees...)
 	return r
@@ -62,9 +62,9 @@ func (m *testRouterState) SetRoutees(routees *process.PIDSet) {
 	m.routees = routees
 }
 
-func (m *testRouterState) RouteMessage(message interface{}, sender *process.PID) {
+func (m *testRouterState) RouteMessage(message interface{}, sender *process.ID) {
 	m.Called(message, sender)
-	m.routees.ForEach(func(i int, pid process.PID) {
+	m.routees.ForEach(func(i int, pid process.ID) {
 		pid.Request(message, sender)
 	})
 }

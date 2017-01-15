@@ -21,14 +21,14 @@ type ConsistentHashPoolRouter struct {
 
 type ConsistentHashRouterState struct {
 	hashring  *hashring.HashRing
-	routeeMap map[string]*process.PID
+	routeeMap map[string]*process.ID
 }
 
 func (state *ConsistentHashRouterState) SetRoutees(routees *process.PIDSet) {
 	//lookup from node name to PID
-	state.routeeMap = make(map[string]*process.PID)
+	state.routeeMap = make(map[string]*process.ID)
 	nodes := make([]string, routees.Len())
-	routees.ForEach(func(i int, pid process.PID) {
+	routees.ForEach(func(i int, pid process.ID) {
 		nodeName := pid.Address + "@" + pid.Id
 		nodes[i] = nodeName
 		state.routeeMap[nodeName] = &pid
@@ -45,7 +45,7 @@ func (state *ConsistentHashRouterState) GetRoutees() *process.PIDSet {
 	return &routees
 }
 
-func (state *ConsistentHashRouterState) RouteMessage(message interface{}, sender *process.PID) {
+func (state *ConsistentHashRouterState) RouteMessage(message interface{}, sender *process.ID) {
 	switch msg := message.(type) {
 	case Hasher:
 		key := msg.Hash()
@@ -65,7 +65,7 @@ func (state *ConsistentHashRouterState) RouteMessage(message interface{}, sender
 	}
 }
 
-func (state *ConsistentHashRouterState) InvokeRouterManagementMessage(msg ManagementMessage, sender *process.PID) {
+func (state *ConsistentHashRouterState) InvokeRouterManagementMessage(msg ManagementMessage, sender *process.ID) {
 
 }
 
@@ -75,7 +75,7 @@ func NewConsistentHashPool(poolSize int) PoolRouterConfig {
 	return r
 }
 
-func NewConsistentHashGroup(routees ...*process.PID) GroupRouterConfig {
+func NewConsistentHashGroup(routees ...*process.ID) GroupRouterConfig {
 	r := &ConsistentHashGroupRouter{}
 	r.Routees = process.NewPIDSet(routees...)
 	return r

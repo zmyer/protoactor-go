@@ -11,11 +11,11 @@ message PoisonPill {}
 
 // router management messages
 message RouterAddRoutee {
-    process.PID PID = 1;
+    process.ID PID = 1;
 }
 
 message RouterRemoveRoutee {
-    process.PID PID = 1;
+    process.ID PID = 1;
 }
 
 message RouterAdjustPoolSize {
@@ -25,17 +25,17 @@ message RouterAdjustPoolSize {
 message RouterGetRoutees {}
 
 message RouterRoutees {
-    repeated process.PID PIDs = 1;
+    repeated process.ID PIDs = 1;
 }
 
 //system messages
 message Watch {
-    process.PID watcher = 1;
+    process.ID watcher = 1;
 }
 message Unwatch {
-    process.PID watcher = 1;
+    process.ID watcher = 1;
 }
 message Terminated {
-    process.PID who = 1;
+    process.ID who = 1;
     bool AddressTerminated = 2;
 }

@@ -3,7 +3,7 @@ package cluster;
 import "github.com/AsynkronIT/protoactor-go/process/protos.proto";
 
 message TakeOwnership {
-    process.PID pid = 1;
+    process.ID pid = 1;
     string name = 2;
 }
 

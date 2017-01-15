@@ -7,7 +7,7 @@ type PIDSet struct {
 	m map[string]struct{}
 }
 
-func NewPIDSet(pids ...*PID) *PIDSet {
+func NewPIDSet(pids ...*ID) *PIDSet {
 	var s PIDSet
 	for _, pid := range pids {
 		s.Add(pid)
@@ -15,7 +15,7 @@ func NewPIDSet(pids ...*PID) *PIDSet {
 	return &s
 }
 
-func (p *PIDSet) indexOf(v *PID) int {
+func (p *PIDSet) indexOf(v *ID) int {
 	for i, pid := range p.s {
 		if v.key() == pid {
 			return i
@@ -32,7 +32,7 @@ func (p *PIDSet) migrate() {
 	p.s = p.s[:0]
 }
 
-func (p *PIDSet) Add(v *PID) {
+func (p *PIDSet) Add(v *ID) {
 	if p.m == nil {
 		if p.indexOf(v) > -1 {
 			return
@@ -50,7 +50,7 @@ func (p *PIDSet) Add(v *PID) {
 	p.m[v.key()] = struct{}{}
 }
 
-func (p *PIDSet) Remove(v *PID) bool {
+func (p *PIDSet) Remove(v *ID) bool {
 	if p.m == nil {
 		i := p.indexOf(v)
 		if i == -1 {
@@ -69,7 +69,7 @@ func (p *PIDSet) Remove(v *PID) bool {
 	return true
 }
 
-func (p *PIDSet) Contains(v *PID) bool {
+func (p *PIDSet) Contains(v *ID) bool {
 	if p.m == nil {
 		return p.indexOf(v) != -1
 	}
@@ -96,12 +96,12 @@ func (p *PIDSet) Empty() bool {
 	return p.Len() == 0
 }
 
-func (p *PIDSet) Values() []PID {
+func (p *PIDSet) Values() []ID {
 	if p.Len() == 0 {
 		return nil
 	}
 
-	r := make([]PID, p.Len())
+	r := make([]ID, p.Len())
 	if p.m == nil {
 		for i, v := range p.s {
 			pidFromKey(v, &r[i])
@@ -116,8 +116,8 @@ func (p *PIDSet) Values() []PID {
 	return r
 }
 
-func (p *PIDSet) ForEach(f func(i int, pid PID)) {
-	var pid PID
+func (p *PIDSet) ForEach(f func(i int, pid ID)) {
+	var pid ID
 	if p.m == nil {
 		for i, v := range p.s {
 			pidFromKey(v, &pid)

@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type EchoOnStartActor struct{ replyTo *process.PID }
+type EchoOnStartActor struct{ replyTo *process.ID }
 
 func (state *EchoOnStartActor) Receive(context Context) {
 	switch context.Message().(type) {
@@ -16,7 +16,7 @@ func (state *EchoOnStartActor) Receive(context Context) {
 	}
 }
 
-func NewEchoOnStartActor(replyTo *process.PID) func() Actor {
+func NewEchoOnStartActor(replyTo *process.ID) func() Actor {
 	return func() Actor {
 		return &EchoOnStartActor{replyTo: replyTo}
 	}
@@ -32,7 +32,7 @@ func TestActorCanReplyOnStarting(t *testing.T) {
 	}
 }
 
-type EchoOnStoppingActor struct{ replyTo *process.PID }
+type EchoOnStoppingActor struct{ replyTo *process.ID }
 
 func (state *EchoOnStoppingActor) Receive(context Context) {
 	switch context.Message().(type) {
@@ -41,7 +41,7 @@ func (state *EchoOnStoppingActor) Receive(context Context) {
 	}
 }
 
-func NewEchoOnStoppingActor(replyTo *process.PID) func() Actor {
+func NewEchoOnStoppingActor(replyTo *process.ID) func() Actor {
 	return func() Actor {
 		return &EchoOnStoppingActor{replyTo: replyTo}
 	}

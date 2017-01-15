@@ -14,7 +14,7 @@ func TestActorCell_SpawnNamed(t *testing.T) {
 	p.On("SendSystemMessage", pid, mock.Anything)
 
 	props := Props{
-		spawner: func(id string, _ Props, _ *process.PID) *process.PID {
+		spawner: func(id string, _ Props, _ *process.ID) *process.ID {
 			assert.Equal(t, "foo/bar", id)
 			return process.NewLocalPID(id)
 		},

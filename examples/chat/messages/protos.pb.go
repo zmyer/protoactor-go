@@ -43,14 +43,14 @@ var _ = math.Inf
 const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
 
 type Connect struct {
-	Sender *process.PID `protobuf:"bytes,1,opt,name=Sender,json=sender" json:"Sender,omitempty"`
+	Sender *process.ID `protobuf:"bytes,1,opt,name=Sender,json=sender" json:"Sender,omitempty"`
 }
 
 func (m *Connect) Reset()                    { *m = Connect{} }
 func (*Connect) ProtoMessage()               {}
 func (*Connect) Descriptor() ([]byte, []int) { return fileDescriptorProtos, []int{0} }
 
-func (m *Connect) GetSender() *process.PID {
+func (m *Connect) GetSender() *process.ID {
 	if m != nil {
 		return m.Sender
 	}
@@ -809,7 +809,7 @@ func (m *Connect) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Sender == nil {
-				m.Sender = &process.PID{}
+				m.Sender = &process.ID{}
 			}
 			if err := m.Sender.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err

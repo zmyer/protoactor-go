@@ -16,7 +16,7 @@ func init() {
 	log.SetOutput(ioutil.Discard)
 }
 
-func spawnMockProcess(name string) (*process.PID, *mockProcess) {
+func spawnMockProcess(name string) (*process.ID, *mockProcess) {
 	p := &mockProcess{}
 	pid, ok := process.Registry.Add(p, name)
 	if !ok {
@@ -26,7 +26,7 @@ func spawnMockProcess(name string) (*process.PID, *mockProcess) {
 	return pid, p
 }
 
-func removeMockProcess(pid *process.PID) {
+func removeMockProcess(pid *process.ID) {
 	process.Registry.Remove(pid)
 }
 
@@ -34,19 +34,19 @@ type mockProcess struct {
 	mock.Mock
 }
 
-func (m *mockProcess) SendUserMessage(pid *process.PID, message interface{}, sender *process.PID) {
+func (m *mockProcess) SendUserMessage(pid *process.ID, message interface{}, sender *process.ID) {
 	m.Called(pid, message, sender)
 }
-func (m *mockProcess) SendSystemMessage(pid *process.PID, message process.SystemMessage) {
+func (m *mockProcess) SendSystemMessage(pid *process.ID, message process.SystemMessage) {
 	m.Called(pid, message)
 }
-func (m *mockProcess) Stop(pid *process.PID) {
+func (m *mockProcess) Stop(pid *process.ID) {
 	m.Called(pid)
 }
-func (m *mockProcess) Watch(pid *process.PID) {
+func (m *mockProcess) Watch(pid *process.ID) {
 	m.Called(pid)
 }
-func (m *mockProcess) Unwatch(pid *process.PID) {
+func (m *mockProcess) Unwatch(pid *process.ID) {
 	m.Called(pid)
 }
 
@@ -54,11 +54,11 @@ type mockContext struct {
 	mock.Mock
 }
 
-func (m *mockContext) Watch(pid *process.PID) {
+func (m *mockContext) Watch(pid *process.ID) {
 	m.Called(pid)
 }
 
-func (m *mockContext) Unwatch(pid *process.PID) {
+func (m *mockContext) Unwatch(pid *process.ID) {
 	m.Called(pid)
 }
 
@@ -75,9 +75,9 @@ func (m *mockContext) ReceiveTimeout() time.Duration {
 	return args.Get(0).(time.Duration)
 }
 
-func (m *mockContext) Sender() *process.PID {
+func (m *mockContext) Sender() *process.ID {
 	args := m.Called()
-	return args.Get(0).(*process.PID)
+	return args.Get(0).(*process.ID)
 }
 
 func (m *mockContext) Become(r actor.Receive) {
@@ -92,29 +92,29 @@ func (m *mockContext) UnbecomeStacked() {
 	m.Called()
 }
 
-func (m *mockContext) Self() *process.PID {
+func (m *mockContext) Self() *process.ID {
 	args := m.Called()
-	return args.Get(0).(*process.PID)
+	return args.Get(0).(*process.ID)
 }
 
-func (m *mockContext) Parent() *process.PID {
+func (m *mockContext) Parent() *process.ID {
 	args := m.Called()
-	return args.Get(0).(*process.PID)
+	return args.Get(0).(*process.ID)
 }
 
-func (m *mockContext) Spawn(p actor.Props) *process.PID {
+func (m *mockContext) Spawn(p actor.Props) *process.ID {
 	args := m.Called(p)
-	return args.Get(0).(*process.PID)
+	return args.Get(0).(*process.ID)
 }
 
-func (m *mockContext) SpawnNamed(p actor.Props, name string) *process.PID {
+func (m *mockContext) SpawnNamed(p actor.Props, name string) *process.ID {
 	args := m.Called(p, name)
-	return args.Get(0).(*process.PID)
+	return args.Get(0).(*process.ID)
 }
 
-func (m *mockContext) Children() []*process.PID {
+func (m *mockContext) Children() []*process.ID {
 	args := m.Called()
-	return args.Get(0).([]*process.PID)
+	return args.Get(0).([]*process.ID)
 }
 
 func (m *mockContext) Next() {

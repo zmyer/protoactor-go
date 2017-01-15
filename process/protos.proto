@@ -3,7 +3,7 @@ package process;
 
 import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 
-message PID {
+message ID {
     option (gogoproto.stringer) = false;
     string Address = 1;
     string Id = 2;

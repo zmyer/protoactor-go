@@ -5,8 +5,8 @@ import "github.com/AsynkronIT/protoactor-go/process/protos.proto";
 message MessageEnvelope {
   string type_name = 1;
   bytes message_data = 2;
-  process.PID target = 3;
-  process.PID sender = 4;
+  process.ID target = 3;
+  process.ID sender = 4;
 }
 
 message ActorPidRequest {
@@ -15,7 +15,7 @@ message ActorPidRequest {
 }
 
 message ActorPidResponse {
-    process.PID pid = 1;
+    process.ID pid = 1;
 }
 
 message MessageBatch {

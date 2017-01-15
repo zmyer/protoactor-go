@@ -44,12 +44,12 @@ func TestActorCanCreateChildren(t *testing.T) {
 }
 
 type CreateChildThenStopActor struct {
-	replyTo *process.PID
+	replyTo *process.ID
 }
 
 type GetChildCountMessage2 struct {
-	ReplyDirectly  *process.PID
-	ReplyAfterStop *process.PID
+	ReplyDirectly  *process.ID
+	ReplyAfterStop *process.ID
 }
 
 func (state *CreateChildThenStopActor) Receive(context Context) {

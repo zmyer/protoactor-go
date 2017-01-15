@@ -9,7 +9,7 @@ import (
 	//proto "github.com/golang/protobuf/proto"
 )
 
-func serialize(message proto.Message, target *process.PID, sender *process.PID) (*MessageEnvelope, error) {
+func serialize(message proto.Message, target *process.ID, sender *process.ID) (*MessageEnvelope, error) {
 	typeName := proto.MessageName(message)
 	ensureGoGo(typeName)
 	bytes, err := proto.Marshal(message)

@@ -16,7 +16,7 @@ type requestMoreWork struct {
 }
 type requestWorkBehavior struct {
 	tokens   int64
-	producer *process.PID
+	producer *process.ID
 }
 
 func (m *requestWorkBehavior) MailboxStarted() {
@@ -42,7 +42,7 @@ func (m *requestWorkBehavior) requestMore() {
 
 type producer struct {
 	requestedWork int
-	worker        *process.PID
+	worker        *process.ID
 }
 
 func (p *producer) Receive(ctx actor.Context) {

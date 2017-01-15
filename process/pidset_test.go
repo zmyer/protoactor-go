@@ -55,7 +55,7 @@ func TestPIDSet_AddMap(t *testing.T) {
 	assert.Equal(t, 1, s.Len())
 }
 
-var pids []*PID
+var pids []*ID
 
 func init() {
 	for i := 0; i < 1000; i++ {
@@ -80,7 +80,7 @@ func BenchmarkPIDSet_Add(b *testing.B) {
 	}
 }
 
-func pidSetAdd(b *testing.B, data []*PID) {
+func pidSetAdd(b *testing.B, data []*ID) {
 	for i := 0; i < b.N; i++ {
 		var s PIDSet
 		for j := 0; j < len(data); j++ {
@@ -106,7 +106,7 @@ func BenchmarkPIDSet_AddRemove(b *testing.B) {
 	}
 }
 
-func pidSetAddRemove(b *testing.B, data []*PID) {
+func pidSetAddRemove(b *testing.B, data []*ID) {
 	for i := 0; i < b.N; i++ {
 		var s PIDSet
 		for j := 0; j < len(data); j++ {
