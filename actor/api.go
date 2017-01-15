@@ -20,6 +20,6 @@ func StopActorFuture(pid *process.PID) *process.Future {
 }
 
 func sendSystemMessage(pid *process.PID, msg process.SystemMessage) {
-	s, _ := process.ProcessRegistry.Get(pid)
+	s, _ := process.Registry.Get(pid)
 	s.SendSystemMessage(pid, msg)
 }

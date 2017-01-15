@@ -15,9 +15,9 @@ func NewFuture(timeout time.Duration) *Future {
 	fut := &Future{cond: sync.NewCond(&sync.Mutex{})}
 
 	ref := &futureProcess{f: fut}
-	id := ProcessRegistry.NextId()
+	id := Registry.NextId()
 
-	pid, ok := ProcessRegistry.Add(ref, id)
+	pid, ok := Registry.Add(ref, id)
 	if !ok {
 		log.Printf("[ACTOR] Failed to register future actorref '%v'", id)
 		log.Println(id)
@@ -108,7 +108,7 @@ func (ref *futureProcess) Stop(pid *PID) {
 
 	ref.f.done = true
 	ref.f.t.Stop()
-	ProcessRegistry.Remove(pid)
+	Registry.Remove(pid)
 
 	ref.f.cond.L.Unlock()
 	ref.f.cond.Signal()

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/AsynkronIT/protoactor-go/actor"
+	"github.com/AsynkronIT/protoactor-go/process"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -28,20 +29,20 @@ func TestPassivation(t *testing.T) {
 	time.Sleep(UnitOfTime)
 	time.Sleep(UnitOfTime)
 	{
-		_, found := actor.ProcessRegistry.LocalPIDs.Get(pid.Id)
+		_, found := process.Registry.LocalPIDs.Get(pid.Id)
 		assert.True(t, found)
 	}
 	pid.Tell("keepalive")
 	time.Sleep(UnitOfTime)
 	time.Sleep(UnitOfTime)
 	{
-		_, found := actor.ProcessRegistry.LocalPIDs.Get(pid.Id)
+		_, found := process.Registry.LocalPIDs.Get(pid.Id)
 		assert.True(t, found)
 	}
 	time.Sleep(UnitOfTime)
 	time.Sleep(UnitOfTime)
 	{
-		_, found := actor.ProcessRegistry.LocalPIDs.Get(pid.Id)
+		_, found := process.Registry.LocalPIDs.Get(pid.Id)
 		assert.False(t, found)
 	}
 }

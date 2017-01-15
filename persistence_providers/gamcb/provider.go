@@ -6,6 +6,7 @@ import (
 
 	"github.com/AsynkronIT/protoactor-go/actor"
 	"github.com/AsynkronIT/protoactor-go/persistence"
+	"github.com/AsynkronIT/protoactor-go/process"
 	"github.com/couchbase/gocb"
 )
 

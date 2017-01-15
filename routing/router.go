@@ -12,7 +12,7 @@ type routerProcess struct {
 
 func (ref *routerProcess) SendUserMessage(pid *process.PID, message interface{}, sender *process.PID) {
 	if _, ok := message.(ManagementMessage); ok {
-		r, _ := process.ProcessRegistry.Get(ref.router)
+		r, _ := process.Registry.Get(ref.router)
 		r.SendUserMessage(pid, message, sender)
 	} else {
 		ref.state.RouteMessage(message, sender)
@@ -20,7 +20,7 @@ func (ref *routerProcess) SendUserMessage(pid *process.PID, message interface{},
 }
 
 func (ref *routerProcess) SendSystemMessage(pid *process.PID, message process.SystemMessage) {
-	r, _ := process.ProcessRegistry.Get(ref.router)
+	r, _ := process.Registry.Get(ref.router)
 	r.SendSystemMessage(pid, message)
 }
 

@@ -1,6 +1,6 @@
 syntax = "proto3";
 package cluster;
-import "github.com/AsynkronIT/protoactor/actor/protos.proto";
+import "github.com/AsynkronIT/protoactor-go/process/protos.proto";
 
 message TakeOwnership {
     process.PID pid = 1;

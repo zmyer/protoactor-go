@@ -5,7 +5,7 @@ import (
 	"log"
 	"math"
 
-	"github.com/AsynkronIT/protoactor-go/actor"
+	"github.com/AsynkronIT/protoactor-go/process"
 )
 
 const (
@@ -17,7 +17,7 @@ func getNode(key, kind string) string {
 	members := getMembers(kind)
 	if members == nil {
 		log.Printf("[CLUSTER] Failed to getNode")
-		return actor.ProcessRegistry.Address
+		return process.Registry.Address
 	}
 
 	bestV := hashSize

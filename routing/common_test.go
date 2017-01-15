@@ -18,7 +18,7 @@ func init() {
 
 func spawnMockProcess(name string) (*process.PID, *mockProcess) {
 	p := &mockProcess{}
-	pid, ok := process.ProcessRegistry.Add(p, name)
+	pid, ok := process.Registry.Add(p, name)
 	if !ok {
 		panic(fmt.Errorf("did not spawn named process '%s'", name))
 	}
@@ -27,7 +27,7 @@ func spawnMockProcess(name string) (*process.PID, *mockProcess) {
 }
 
 func removeMockProcess(pid *process.PID) {
-	process.ProcessRegistry.Remove(pid)
+	process.Registry.Remove(pid)
 }
 
 type mockProcess struct {

@@ -24,8 +24,8 @@ func Start(address string, options ...RemotingOption) {
 	}
 
 	address = lis.Addr().String()
-	process.ProcessRegistry.RegisterAddressResolver(remoteHandler)
-	process.ProcessRegistry.Address = address
+	process.Registry.RegisterAddressResolver(remoteHandler)
+	process.Registry.Address = address
 
 	spawnActivatorActor()
 	spawnEndpointManager(config)

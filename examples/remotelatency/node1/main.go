@@ -4,8 +4,8 @@ import (
 	"time"
 
 	console "github.com/AsynkronIT/goconsole"
-	"github.com/AsynkronIT/protoactor-go/actor"
 	"github.com/AsynkronIT/protoactor-go/examples/remotelatency/messages"
+	"github.com/AsynkronIT/protoactor-go/process"
 	"github.com/AsynkronIT/protoactor-go/remoting"
 
 	"runtime"
@@ -23,7 +23,7 @@ func main() {
 
 	remoting.Start("127.0.0.1:8081", remoting.WithEndpointWriterBatchSize(10000))
 
-	remote := actor.NewPID("127.0.0.1:8080", "remote")
+	remote := process.NewPID("127.0.0.1:8080", "remote")
 	remote.
 		RequestFuture(&messages.Start{}, 5*time.Second).
 		Wait()

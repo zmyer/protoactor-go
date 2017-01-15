@@ -67,8 +67,8 @@ func TestRouterActor_Receive_BroadcastMessage(t *testing.T) {
 	child := new(mockProcess)
 	child.On("SendUserMessage", mock.Anything, mock.Anything, mock.Anything).Times(2)
 
-	process.ProcessRegistry.Add(child, "p1")
-	process.ProcessRegistry.Add(child, "p2")
+	process.Registry.Add(child, "p1")
+	process.Registry.Add(child, "p2")
 
 	c := new(mockContext)
 	c.On("Message").Return(&BroadcastMessage{"hi"})

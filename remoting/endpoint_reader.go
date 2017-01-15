@@ -31,7 +31,7 @@ func (s *server) Receive(stream Remoting_ReceiveServer) error {
 				}
 				endpointManagerPID.Tell(rt)
 			case actor.SystemMessage:
-				ref, _ := process.ProcessRegistry.GetLocal(pid.Id)
+				ref, _ := process.Registry.GetLocal(pid.Id)
 				ref.SendSystemMessage(pid, msg)
 			default:
 				pid.Request(message, sender)

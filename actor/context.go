@@ -330,11 +330,11 @@ func (cell *actorCell) restart() {
 }
 
 func (cell *actorCell) stopped() {
-	process.ProcessRegistry.Remove(cell.self)
+	process.Registry.Remove(cell.self)
 	cell.InvokeUserMessage(stoppedMessage)
 	otherStopped := &Terminated{Who: cell.self}
 	cell.watchers.ForEach(func(i int, pid process.PID) {
-		ref, _ := process.ProcessRegistry.Get(&pid)
+		ref, _ := process.Registry.Get(&pid)
 		ref.SendSystemMessage(&pid, otherStopped)
 	})
 }
@@ -462,7 +462,7 @@ func (cell *actorCell) Respond(response interface{}) {
 }
 
 func (cell *actorCell) Spawn(props Props) *process.PID {
-	return cell.SpawnNamed(props, process.ProcessRegistry.NextId())
+	return cell.SpawnNamed(props, process.Registry.NextId())
 }
 
 func (cell *actorCell) SpawnNamed(props Props, name string) *process.PID {

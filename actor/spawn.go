@@ -8,7 +8,7 @@ var DefaultSpawner Spawner = spawn
 
 //Spawn an actor with an auto generated id
 func Spawn(props Props) *process.PID {
-	return props.spawn(process.ProcessRegistry.NextId(), nil)
+	return props.spawn(process.Registry.NextId(), nil)
 }
 
 //SpawnNamed spawns a named actor
@@ -20,7 +20,7 @@ func spawn(id string, props Props, parent *process.PID) *process.PID {
 	cell := newActorCell(props, parent)
 	mailbox := props.ProduceMailbox()
 	ref := newLocalProcess(mailbox)
-	pid, absent := process.ProcessRegistry.Add(ref, id)
+	pid, absent := process.Registry.Add(ref, id)
 
 	if absent {
 		mailbox.RegisterHandlers(cell, props.Dispatcher())

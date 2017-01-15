@@ -8,19 +8,19 @@ import (
 
 //Tell a message to a given PID
 func (pid *PID) Tell(message interface{}) {
-	ref, _ := ProcessRegistry.Get(pid)
+	ref, _ := Registry.Get(pid)
 	ref.SendUserMessage(pid, message, nil)
 }
 
 //Ask a message to a given PID
 func (pid *PID) Request(message interface{}, respondTo *PID) {
-	ref, _ := ProcessRegistry.Get(pid)
+	ref, _ := Registry.Get(pid)
 	ref.SendUserMessage(pid, message, respondTo)
 }
 
 //RequestFuture sends a message to a given PID and returns a Future
 func (pid *PID) RequestFuture(message interface{}, timeout time.Duration) *Future {
-	ref, ok := ProcessRegistry.Get(pid)
+	ref, ok := Registry.Get(pid)
 	if !ok {
 		log.Printf("[ACTOR] RequestFuture for missing local PID '%v'", pid.String())
 	}
@@ -33,7 +33,7 @@ func (pid *PID) RequestFuture(message interface{}, timeout time.Duration) *Futur
 func pidFromKey(key string, p *PID) {
 	i := strings.IndexByte(key, '#')
 	if i == -1 {
-		p.Address = ProcessRegistry.Address
+		p.Address = Registry.Address
 		p.Id = key
 	} else {
 		p.Address = key[:i]
@@ -42,7 +42,7 @@ func pidFromKey(key string, p *PID) {
 }
 
 func (pid *PID) key() string {
-	if pid.Address == ProcessRegistry.Address {
+	if pid.Address == Registry.Address {
 		return pid.Id
 	}
 	return pid.Address + "#" + pid.Id
@@ -67,7 +67,7 @@ func NewPID(address, id string) *PID {
 //NewLocalPID returns a new instance of the PID struct with the address preset
 func NewLocalPID(id string) *PID {
 	return &PID{
-		Address: ProcessRegistry.Address,
+		Address: Registry.Address,
 		Id:      id,
 	}
 }

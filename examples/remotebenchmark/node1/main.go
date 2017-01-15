@@ -7,6 +7,7 @@ import (
 
 	"github.com/AsynkronIT/protoactor-go/actor"
 	"github.com/AsynkronIT/protoactor-go/examples/remotebenchmark/messages"
+	"github.com/AsynkronIT/protoactor-go/process"
 	"github.com/AsynkronIT/protoactor-go/remoting"
 
 	"log"
@@ -85,7 +86,7 @@ func main() {
 
 	pid := actor.Spawn(props)
 
-	remote := actor.NewPID("127.0.0.1:8080", "remote")
+	remote := process.NewPID("127.0.0.1:8080", "remote")
 	remote.
 		RequestFuture(&messages.StartRemote{
 			Sender: pid,

@@ -5,14 +5,14 @@ import (
 	"runtime"
 
 	"github.com/AsynkronIT/goconsole"
-	"github.com/AsynkronIT/protoactor-go/actor"
 	"github.com/AsynkronIT/protoactor-go/examples/distributedchannels/messages"
+	"github.com/AsynkronIT/protoactor-go/process"
 	"github.com/AsynkronIT/protoactor-go/remoting"
 )
 
 func newMyMessageSenderChannel() chan<- *messages.MyMessage {
 	channel := make(chan *messages.MyMessage)
-	remote := actor.NewPID("127.0.0.1:8080", "MyMessage")
+	remote := process.NewPID("127.0.0.1:8080", "MyMessage")
 	go func() {
 		for msg := range channel {
 			remote.Tell(msg)

@@ -7,6 +7,7 @@ import (
 	"github.com/AsynkronIT/goconsole"
 	"github.com/AsynkronIT/protoactor-go/actor"
 	"github.com/AsynkronIT/protoactor-go/examples/remotebenchmark/messages"
+	"github.com/AsynkronIT/protoactor-go/process"
 	"github.com/AsynkronIT/protoactor-go/remoting"
 )
 

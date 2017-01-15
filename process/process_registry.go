@@ -16,7 +16,7 @@ type ProcessRegistryValue struct {
 var (
 	localAddress = "nonhost"
 
-	ProcessRegistry = &ProcessRegistryValue{
+	Registry = &ProcessRegistryValue{
 		Address:   localAddress,
 		LocalPIDs: cmap.New(),
 	}

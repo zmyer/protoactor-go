@@ -43,7 +43,7 @@ func (state *endpointWatcher) Receive(ctx actor.Context) {
 		for id, pid := range state.watched {
 
 			//try to find the watcher ID in the local actor registry
-			ref, ok := process.ProcessRegistry.GetLocal(id)
+			ref, ok := process.Registry.GetLocal(id)
 			if ok {
 
 				//create a terminated event for the Watched actor
@@ -101,7 +101,7 @@ func (state *endpointWatcher) Terminated(ctx actor.Context) {
 	case *remoteWatch:
 
 		//try to find the watcher ID in the local actor registry
-		ref, ok := process.ProcessRegistry.GetLocal(msg.Watcher.Id)
+		ref, ok := process.Registry.GetLocal(msg.Watcher.Id)
 		if ok {
 
 			//create a terminated event for the Watched actor

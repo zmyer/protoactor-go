@@ -7,6 +7,7 @@ import (
 	"github.com/AsynkronIT/goconsole"
 	"github.com/AsynkronIT/protoactor-go/actor"
 	"github.com/AsynkronIT/protoactor-go/examples/chat/messages"
+	"github.com/AsynkronIT/protoactor-go/process"
 	"github.com/AsynkronIT/protoactor-go/remoting"
 )
 
@@ -14,7 +15,7 @@ func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	remoting.Start("127.0.0.1:0")
 
-	server := actor.NewPID("127.0.0.1:8080", "chatserver")
+	server := process.NewPID("127.0.0.1:8080", "chatserver")
 	//spawn our chat client inline
 	props := actor.FromFunc(func(context actor.Context) {
 		switch msg := context.Message().(type) {

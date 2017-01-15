@@ -7,14 +7,14 @@ import (
 
 // SpawnPool spawns a pool router with an auto generated id
 func SpawnPool(config PoolRouterConfig, props actor.Props) *process.PID {
-	id := process.ProcessRegistry.NextId()
+	id := process.Registry.NextId()
 	pid := spawn(id, config, props, nil)
 	return pid
 }
 
 // SpawnGroup spawns a pool router with an auto generated id
 func SpawnGroup(config GroupRouterConfig) *process.PID {
-	id := process.ProcessRegistry.NextId()
+	id := process.Registry.NextId()
 	pid := spawn(id, config, actor.Props{}, nil)
 	return pid
 }
@@ -41,13 +41,13 @@ func spawn(id string, config RouterConfig, props actor.Props, parent *process.PI
 		state:  routerState,
 	})
 
-	routerID := process.ProcessRegistry.NextId()
+	routerID := process.Registry.NextId()
 	router := actor.DefaultSpawner(routerID, routerProps, parent)
 
 	ref := &routerProcess{
 		router: router,
 		state:  routerState,
 	}
-	proxy, _ := process.ProcessRegistry.Add(ref, id)
+	proxy, _ := process.Registry.Add(ref, id)
 	return proxy
 }

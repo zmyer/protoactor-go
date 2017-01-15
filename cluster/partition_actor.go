@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/AsynkronIT/protoactor-go/actor"
+	"github.com/AsynkronIT/protoactor-go/process"
 	"github.com/AsynkronIT/protoactor-go/remoting"
 )
 
@@ -13,7 +14,7 @@ var (
 )
 
 func subscribePartitionKindsToEventStream() {
-	actor.EventStream.Subscribe(func(m interface{}) {
+	process.EventStream.Subscribe(func(m interface{}) {
 		if mse, ok := m.(MemberStatusEvent); ok {
 			for _, k := range mse.GetKinds() {
 				kindPID := kindPIDMap[k]
@@ -31,7 +32,7 @@ func spawnPartitionActor(kind string) *process.PID {
 }
 
 func partitionForKind(address, kind string) *process.PID {
-	pid := actor.NewPID(address, "#partition-"+kind)
+	pid := process.NewPID(address, "#partition-"+kind)
 	return pid
 }
 
@@ -120,7 +121,7 @@ func (state *partitionActor) memberJoined(msg *MemberJoinedEvent) {
 	log.Printf("[CLUSTER] Node Joined %v", msg.Name())
 	for actorID := range state.partition {
 		address := getNode(actorID, state.kind)
-		if address != actor.ProcessRegistry.Address {
+		if address != process.Registry.Address {
 			state.transferOwnership(actorID, address)
 		}
 	}
