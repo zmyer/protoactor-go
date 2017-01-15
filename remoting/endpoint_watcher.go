@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/AsynkronIT/protoactor-go/actor"
+	"github.com/AsynkronIT/protoactor-go/process"
 )
 
 func newEndpointWatcher(address string) actor.Producer {
@@ -16,14 +17,14 @@ func newEndpointWatcher(address string) actor.Producer {
 
 type endpointWatcher struct {
 	address string
-	watched map[string]*actor.PID //key is the watching PID string, value is the watched PID
-	watcher map[string]*actor.PID //key is the watched PID string, value is the watching PID
+	watched map[string]*process.PID //key is the watching PID string, value is the watched PID
+	watcher map[string]*process.PID //key is the watched PID string, value is the watching PID
 }
 
 func (state *endpointWatcher) initialize() {
 	log.Printf("[REMOTING] Started EndpointWatcher for address %v", state.address)
-	state.watched = make(map[string]*actor.PID)
-	state.watcher = make(map[string]*actor.PID)
+	state.watched = make(map[string]*process.PID)
+	state.watcher = make(map[string]*process.PID)
 }
 
 func (state *endpointWatcher) Receive(ctx actor.Context) {
@@ -42,7 +43,7 @@ func (state *endpointWatcher) Receive(ctx actor.Context) {
 		for id, pid := range state.watched {
 
 			//try to find the watcher ID in the local actor registry
-			ref, ok := actor.ProcessRegistry.GetLocal(id)
+			ref, ok := process.ProcessRegistry.GetLocal(id)
 			if ok {
 
 				//create a terminated event for the Watched actor
@@ -51,7 +52,7 @@ func (state *endpointWatcher) Receive(ctx actor.Context) {
 					AddressTerminated: true,
 				}
 
-				watcher := actor.NewLocalPID(id)
+				watcher := process.NewLocalPID(id)
 				//send the address Terminated event to the Watcher
 				ref.SendSystemMessage(watcher, terminated)
 			}
@@ -100,7 +101,7 @@ func (state *endpointWatcher) Terminated(ctx actor.Context) {
 	case *remoteWatch:
 
 		//try to find the watcher ID in the local actor registry
-		ref, ok := actor.ProcessRegistry.GetLocal(msg.Watcher.Id)
+		ref, ok := process.ProcessRegistry.GetLocal(msg.Watcher.Id)
 		if ok {
 
 			//create a terminated event for the Watched actor

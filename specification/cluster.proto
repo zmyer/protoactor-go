@@ -4,7 +4,7 @@ import "actor.proto";
 option csharp_namespace = "GAM.Cluster";
 
 message TakeOwnership {
-    actor.PID pid = 1;
+    process.PID pid = 1;
     string name = 2;
 }
 

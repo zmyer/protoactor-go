@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/AsynkronIT/goconsole"
-	"github.com/AsynkronIT/protoactor-go/actor"
+	actor "github.com/AsynkronIT/protoactor-go/actor"
 )
 
 type hello struct{ Who string }
@@ -28,15 +28,15 @@ func (state *helloActor) Receive(context actor.Context) {
 
 func main() {
 	props := actor.FromInstance(&helloActor{})
-	actor := actor.Spawn(props)
-	actor.Tell(&hello{Who: "Roger"})
+	a := actor.Spawn(props)
+	a.Tell(&hello{Who: "Roger"})
 
 	//why wait?
 	//Stop is a system message and is not processed through the user message mailbox
 	//thus, it will be handled _before_ any user message
 	//we only do this to show the correct order of events in the console
 	time.Sleep(1 * time.Second)
-	actor.Stop()
+	actor.StopActor(a)
 
 	console.ReadLine()
 }

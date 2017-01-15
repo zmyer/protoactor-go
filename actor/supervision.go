@@ -43,7 +43,7 @@ func (strategy *OneForOneStrategy) HandleFailure(supervisor Supervisor, child *p
 		sendSystemMessage(child, restartMessage)
 	case StopDirective:
 		//stop the failing child
-		stopActor(child)
+		StopActor(child)
 	case EscalateDirective:
 		//send failure to parent
 		//supervisor mailbox

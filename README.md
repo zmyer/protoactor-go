@@ -240,7 +240,7 @@ func NewChildActor() actor.Actor {
 }
 
 func main() {
-    decider := func(child *actor.PID, reason interface{}) actor.Directive {
+    decider := func(child *process.PID, reason interface{}) actor.Directive {
         fmt.Println("handling failure for child")
         return actor.StopDirective
     }
@@ -326,7 +326,7 @@ import "actor.proto"; //we need to import actor.proto, so our messages can inclu
 
 //this is the message the actor on node 1 will send to the remote actor on node 2
 message Echo {
-  actor.PID Sender = 1; //this is the PID the remote actor should reply to
+  process.PID Sender = 1; //this is the PID the remote actor should reply to
   string Message = 2;
 }
 

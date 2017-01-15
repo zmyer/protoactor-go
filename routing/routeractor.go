@@ -1,6 +1,9 @@
 package routing
 
-import "github.com/AsynkronIT/protoactor-go/actor"
+import (
+	"github.com/AsynkronIT/protoactor-go/actor"
+	"github.com/AsynkronIT/protoactor-go/process"
+)
 
 type routerActor struct {
 	props  actor.Props
@@ -35,14 +38,14 @@ func (a *routerActor) Receive(context actor.Context) {
 	case *BroadcastMessage:
 		msg := m.Message
 		sender := context.Sender()
-		a.state.GetRoutees().ForEach(func(i int, pid actor.PID) {
+		a.state.GetRoutees().ForEach(func(i int, pid process.PID) {
 			pid.Request(msg, sender)
 		})
 
 	case *GetRoutees:
 		r := a.state.GetRoutees()
-		routees := make([]*actor.PID, r.Len())
-		r.ForEach(func(i int, pid actor.PID) {
+		routees := make([]*process.PID, r.Len())
+		r.ForEach(func(i int, pid process.PID) {
 			routees[i] = &pid
 		})
 

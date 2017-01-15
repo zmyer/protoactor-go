@@ -5,7 +5,7 @@ import (
 	"log"
 	"net"
 
-	"github.com/AsynkronIT/protoactor-go/actor"
+	"github.com/AsynkronIT/protoactor-go/process"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/grpclog"
@@ -24,8 +24,8 @@ func Start(address string, options ...RemotingOption) {
 	}
 
 	address = lis.Addr().String()
-	actor.ProcessRegistry.RegisterAddressResolver(remoteHandler)
-	actor.ProcessRegistry.Address = address
+	process.ProcessRegistry.RegisterAddressResolver(remoteHandler)
+	process.ProcessRegistry.Address = address
 
 	spawnActivatorActor()
 	spawnEndpointManager(config)

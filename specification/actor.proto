@@ -12,11 +12,11 @@ message PoisonPill {}
 
 // router management messages
 message RouterAddRoutee {
-    actor.PID PID = 1;
+    process.PID PID = 1;
 }
 
 message RouterRemoveRoutee {
-    actor.PID PID = 1;
+    process.PID PID = 1;
 }
 
 message RouterAdjustPoolSize {
@@ -26,7 +26,7 @@ message RouterAdjustPoolSize {
 message RouterGetRoutees {}
 
 message RouterRoutees {
-    repeated actor.PID PIDs = 1;
+    repeated process.PID PIDs = 1;
 }
 
 //system messages

@@ -6,15 +6,15 @@ import (
 	"github.com/AsynkronIT/protoactor-go/process"
 )
 
-func stopActor(pid *process.PID) {
+func StopActor(pid *process.PID) {
 	sendSystemMessage(pid, stopMessage)
 }
 
-func stopActorFuture(pid *process.PID) *process.Future {
+func StopActorFuture(pid *process.PID) *process.Future {
 	future := process.NewFuture(10 * time.Second)
 
 	sendSystemMessage(pid, &Watch{Watcher: future.PID()})
-	stopActor(pid)
+	StopActor(pid)
 
 	return future
 }

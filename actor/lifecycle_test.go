@@ -25,7 +25,7 @@ func NewEchoOnStartActor(replyTo *process.PID) func() Actor {
 func TestActorCanReplyOnStarting(t *testing.T) {
 	future := process.NewFuture(testTimeout)
 	actor := Spawn(FromProducer(NewEchoOnStartActor(future.PID())))
-	defer stopActor(actor)
+	defer StopActor(actor)
 	if _, err := future.Result(); err != nil {
 		assert.Fail(t, "timed out")
 		return
@@ -50,7 +50,7 @@ func NewEchoOnStoppingActor(replyTo *process.PID) func() Actor {
 func TestActorCanReplyOnStopping(t *testing.T) {
 	future := process.NewFuture(testTimeout)
 	actor := Spawn(FromProducer(NewEchoOnStoppingActor(future.PID())))
-	stopActor(actor)
+	StopActor(actor)
 	if _, err := future.Result(); err != nil {
 		assert.Fail(t, "timed out")
 		return

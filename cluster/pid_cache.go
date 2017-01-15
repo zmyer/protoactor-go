@@ -8,22 +8,22 @@ import (
 
 type pidCache struct {
 	lock  sync.RWMutex
-	Cache map[string]*actor.PID
+	Cache map[string]*process.PID
 }
 
-func (c *pidCache) Get(key string) *actor.PID {
+func (c *pidCache) Get(key string) *process.PID {
 	c.lock.RLock()
 	pid := c.Cache[key]
 	c.lock.RUnlock()
 	return pid
 }
 
-func (c *pidCache) Add(key string, pid *actor.PID) {
+func (c *pidCache) Add(key string, pid *process.PID) {
 	c.lock.Lock()
 	c.Cache[key] = pid
 	c.lock.Unlock()
 }
 
 var cache = &pidCache{
-	Cache: make(map[string]*actor.PID),
+	Cache: make(map[string]*process.PID),
 }

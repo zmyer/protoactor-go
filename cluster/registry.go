@@ -18,7 +18,7 @@ func getRandomActivator(kind string) string {
 }
 
 //Get a PID to a virtual actor
-func Get(name string, kind string) (*actor.PID, error) {
+func Get(name string, kind string) (*process.PID, error) {
 	pid := cache.Get(name)
 	if pid == nil {
 

@@ -5,10 +5,11 @@ import (
 	"time"
 
 	"github.com/AsynkronIT/protoactor-go/actor"
+	"github.com/AsynkronIT/protoactor-go/process"
 )
 
 type PassivationAware interface {
-	Init(*actor.PID, time.Duration)
+	Init(*process.PID, time.Duration)
 	Reset(time.Duration)
 	Cancel()
 }
@@ -27,13 +28,13 @@ func (state *PassivationHolder) Reset(duration time.Duration) {
 	}
 }
 
-func (state *PassivationHolder) Init(pid *actor.PID, duration time.Duration) {
+func (state *PassivationHolder) Init(pid *process.PID, duration time.Duration) {
 	state.timer = time.NewTimer(duration)
 	state.done = false
 	go func() {
 		select {
 		case <-state.timer.C:
-			pid.Stop()
+			actor.StopActor(pid)
 			state.done = true
 			break
 		}

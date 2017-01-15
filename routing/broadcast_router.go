@@ -1,6 +1,6 @@
 package routing
 
-import "github.com/AsynkronIT/protoactor-go/actor"
+import "github.com/AsynkronIT/protoactor-go/process"
 
 type BroadcastGroupRouter struct {
 	GroupRouter
@@ -11,19 +11,19 @@ type BroadcastPoolRouter struct {
 }
 
 type BroadcastRouterState struct {
-	routees *actor.PIDSet
+	routees *process.PIDSet
 }
 
-func (state *BroadcastRouterState) SetRoutees(routees *actor.PIDSet) {
+func (state *BroadcastRouterState) SetRoutees(routees *process.PIDSet) {
 	state.routees = routees
 }
 
-func (state *BroadcastRouterState) GetRoutees() *actor.PIDSet {
+func (state *BroadcastRouterState) GetRoutees() *process.PIDSet {
 	return state.routees
 }
 
-func (state *BroadcastRouterState) RouteMessage(message interface{}, sender *actor.PID) {
-	state.routees.ForEach(func(i int, pid actor.PID) {
+func (state *BroadcastRouterState) RouteMessage(message interface{}, sender *process.PID) {
+	state.routees.ForEach(func(i int, pid process.PID) {
 		pid.Request(message, sender)
 	})
 }
@@ -34,9 +34,9 @@ func NewBroadcastPool(poolSize int) PoolRouterConfig {
 	return r
 }
 
-func NewBroadcastGroup(routees ...*actor.PID) GroupRouterConfig {
+func NewBroadcastGroup(routees ...*process.PID) GroupRouterConfig {
 	r := &BroadcastGroupRouter{}
-	r.Routees = actor.NewPIDSet(routees...)
+	r.Routees = process.NewPIDSet(routees...)
 	return r
 }
 

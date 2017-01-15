@@ -6,11 +6,12 @@ import (
 	"time"
 
 	"github.com/AsynkronIT/protoactor-go/actor"
+	"github.com/AsynkronIT/protoactor-go/process"
 )
 
 var (
 	nameLookup   = make(map[string]actor.Props)
-	activatorPid *actor.PID
+	activatorPid *process.PID
 )
 
 func spawnActivatorActor() {
@@ -33,12 +34,12 @@ func GetKnownKinds() []string {
 type activator struct {
 }
 
-func ActivatorForAddress(address string) *actor.PID {
-	pid := actor.NewPID(address, "activator")
+func ActivatorForAddress(address string) *process.PID {
+	pid := process.NewPID(address, "activator")
 	return pid
 }
 
-func SpawnFuture(address string, name string, kind string, timeout time.Duration) *actor.Future {
+func SpawnFuture(address string, name string, kind string, timeout time.Duration) *process.Future {
 	activator := ActivatorForAddress(address)
 	f := activator.RequestFuture(&ActorPidRequest{
 		Name: name,
@@ -46,7 +47,7 @@ func SpawnFuture(address string, name string, kind string, timeout time.Duration
 	}, timeout)
 	return f
 }
-func Spawn(address string, name string, kind string, timeout time.Duration) (*actor.PID, error) {
+func Spawn(address string, name string, kind string, timeout time.Duration) (*process.PID, error) {
 	activator := ActivatorForAddress(address)
 	res, err := activator.RequestFuture(&ActorPidRequest{
 		Name: name,

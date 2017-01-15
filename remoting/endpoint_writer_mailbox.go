@@ -7,6 +7,7 @@ import (
 	"github.com/AsynkronIT/goring"
 	"github.com/AsynkronIT/protoactor-go/actor"
 	"github.com/AsynkronIT/protoactor-go/internal/queue/lfqueue"
+	"github.com/AsynkronIT/protoactor-go/process"
 )
 
 const (
@@ -35,7 +36,7 @@ func (mailbox *endpointWriterMailbox) PostUserMessage(message interface{}) {
 	mailbox.schedule()
 }
 
-func (mailbox *endpointWriterMailbox) PostSystemMessage(message actor.SystemMessage) {
+func (mailbox *endpointWriterMailbox) PostSystemMessage(message process.SystemMessage) {
 	mailbox.systemMailbox.Push(message)
 	mailbox.schedule()
 }
@@ -57,7 +58,7 @@ func (mailbox *endpointWriterMailbox) Resume() {
 
 func (m *endpointWriterMailbox) ConsumeSystemMessages() bool {
 	if sysMsg := m.systemMailbox.Pop(); sysMsg != nil {
-		sys, _ := sysMsg.(actor.SystemMessage)
+		sys, _ := sysMsg.(process.SystemMessage)
 		switch sys.(type) {
 		case *actor.SuspendMailbox:
 			m.suspended = true

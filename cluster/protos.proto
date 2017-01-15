@@ -3,7 +3,7 @@ package cluster;
 import "github.com/AsynkronIT/protoactor/actor/protos.proto";
 
 message TakeOwnership {
-    actor.PID pid = 1;
+    process.PID pid = 1;
     string name = 2;
 }
 

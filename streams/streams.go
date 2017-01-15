@@ -1,22 +1,25 @@
 package streams
 
-import "github.com/AsynkronIT/protoactor-go/actor"
+import (
+	"github.com/AsynkronIT/protoactor-go/actor"
+	"github.com/AsynkronIT/protoactor-go/process"
+)
 
 type UntypedStream struct {
 	c   chan interface{}
-	pid *actor.PID
+	pid *process.PID
 }
 
 func (s *UntypedStream) C() <-chan interface{} {
 	return s.c
 }
 
-func (s *UntypedStream) PID() *actor.PID {
+func (s *UntypedStream) PID() *process.PID {
 	return s.pid
 }
 
 func (s *UntypedStream) Close() {
-	s.pid.Stop()
+	actor.StopActor(s.pid)
 	close(s.c)
 }
 

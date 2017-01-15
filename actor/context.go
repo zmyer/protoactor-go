@@ -249,7 +249,7 @@ func (cell *actorCell) handleRestart(msg *Restart) {
 	cell.restarting = true
 	cell.InvokeUserMessage(restartingMessage)
 	cell.children.ForEach(func(_ int, pid process.PID) {
-		stopActor(&pid)
+		StopActor(&pid)
 	})
 	cell.tryRestartOrTerminate()
 }
@@ -260,7 +260,7 @@ func (cell *actorCell) handleStop(msg *Stop) {
 	cell.restarting = false
 	cell.InvokeUserMessage(stoppingMessage)
 	cell.children.ForEach(func(_ int, pid process.PID) {
-		stopActor(&pid)
+		StopActor(&pid)
 	})
 	cell.tryRestartOrTerminate()
 }

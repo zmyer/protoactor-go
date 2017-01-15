@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/AsynkronIT/protoactor-go/actor"
+	"github.com/AsynkronIT/protoactor-go/process"
 )
 
 type request struct {
@@ -25,7 +26,7 @@ var (
 type state struct {
 	sum     int
 	replies int
-	replyTo *actor.PID
+	replyTo *process.PID
 }
 
 func newState() actor.Actor {

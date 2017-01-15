@@ -4,9 +4,10 @@ import (
 	"log"
 
 	"github.com/AsynkronIT/protoactor-go/actor"
+	"github.com/AsynkronIT/protoactor-go/process"
 )
 
-var endpointManagerPID *actor.PID
+var endpointManagerPID *process.PID
 
 func newEndpointManager(config *remotingConfig) actor.Producer {
 	return func() actor.Actor {
@@ -17,7 +18,7 @@ func newEndpointManager(config *remotingConfig) actor.Producer {
 }
 
 func subscribeEndpointManager() {
-	actor.EventStream.SubscribePID(func(m interface{}) bool {
+	process.EventStream.SubscribePID(func(m interface{}) bool {
 		_, ok := m.(*EndpointTerminated)
 		return ok
 	}, endpointManagerPID)
@@ -32,8 +33,8 @@ func spawnEndpointManager(config *remotingConfig) {
 }
 
 type endpoint struct {
-	writer  *actor.PID
-	watcher *actor.PID
+	writer  *process.PID
+	watcher *process.PID
 }
 
 type endpointManager struct {
@@ -82,7 +83,7 @@ func (state *endpointManager) ensureConnected(address string, ctx actor.Context)
 	return e
 }
 
-func (state *endpointManager) spawnEndpointWriter(address string, ctx actor.Context) *actor.PID {
+func (state *endpointManager) spawnEndpointWriter(address string, ctx actor.Context) *process.PID {
 	props := actor.
 		FromProducer(newEndpointWriter(address, state.config)).
 		WithMailbox(newEndpointWriterMailbox(state.config.endpointWriterBatchSize, state.config.endpointWriterQueueSize))
@@ -90,7 +91,7 @@ func (state *endpointManager) spawnEndpointWriter(address string, ctx actor.Cont
 	return pid
 }
 
-func (state *endpointManager) spawnEndpointWatcher(address string, ctx actor.Context) *actor.PID {
+func (state *endpointManager) spawnEndpointWatcher(address string, ctx actor.Context) *process.PID {
 	props := actor.
 		FromProducer(newEndpointWatcher(address))
 	pid := ctx.Spawn(props)

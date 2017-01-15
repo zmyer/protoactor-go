@@ -5,24 +5,25 @@ import (
 	"reflect"
 
 	"github.com/AsynkronIT/protoactor-go/actor"
+	"github.com/AsynkronIT/protoactor-go/process"
 	"github.com/gogo/protobuf/proto"
 )
 
 type remoteProcess struct {
-	pid *actor.PID
+	pid *process.PID
 }
 
-func newRemoteProcess(pid *actor.PID) actor.Process {
+func newRemoteProcess(pid *process.PID) process.Process {
 	return &remoteProcess{
 		pid: pid,
 	}
 }
 
-func (ref *remoteProcess) SendUserMessage(pid *actor.PID, message interface{}, sender *actor.PID) {
+func (ref *remoteProcess) SendUserMessage(pid *process.PID, message interface{}, sender *process.PID) {
 	sendRemoteMessage(pid, message, sender)
 }
 
-func sendRemoteMessage(pid *actor.PID, message interface{}, sender *actor.PID) {
+func sendRemoteMessage(pid *process.PID, message interface{}, sender *process.PID) {
 	switch msg := message.(type) {
 	case proto.Message:
 		envelope, _ := serialize(msg, pid, sender)
@@ -32,7 +33,7 @@ func sendRemoteMessage(pid *actor.PID, message interface{}, sender *actor.PID) {
 	}
 }
 
-func (ref *remoteProcess) SendSystemMessage(pid *actor.PID, message actor.SystemMessage) {
+func (ref *remoteProcess) SendSystemMessage(pid *process.PID, message process.SystemMessage) {
 
 	//intercept any Watch messages and direct them to the endpoint manager
 	switch msg := message.(type) {
@@ -53,6 +54,6 @@ func (ref *remoteProcess) SendSystemMessage(pid *actor.PID, message actor.System
 	}
 }
 
-func (ref *remoteProcess) Stop(pid *actor.PID) {
+func (ref *remoteProcess) Stop(pid *process.PID) {
 	ref.SendSystemMessage(pid, &actor.Stop{})
 }

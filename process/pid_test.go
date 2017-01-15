@@ -1,40 +1,33 @@
 package process
 
-import (
-	"reflect"
-	"testing"
+// type ShortLivingActor struct {
+// }
 
-	"github.com/stretchr/testify/assert"
-)
+// func (self *ShortLivingActor) Receive(ctx Context) {
 
-type ShortLivingActor struct {
-}
+// }
 
-func (self *ShortLivingActor) Receive(ctx Context) {
+// func TestStopFuture(t *testing.T) {
+// 	ID := "UniqueID"
+// 	{
+// 		props := FromInstance(&ShortLivingActor{})
+// 		actor := SpawnNamed(props, ID)
 
-}
+// 		fut := actor.StopFuture()
 
-func TestStopFuture(t *testing.T) {
-	ID := "UniqueID"
-	{
-		props := FromInstance(&ShortLivingActor{})
-		actor := SpawnNamed(props, ID)
+// 		res, errR := fut.Result()
+// 		if errR != nil {
+// 			assert.Fail(t, "Failed to wait stop actor %s", errR)
+// 			return
+// 		}
 
-		fut := actor.StopFuture()
+// 		_, ok := res.(*Terminated)
+// 		if !ok {
+// 			assert.Fail(t, "Cannot cast %s", reflect.TypeOf(res))
+// 			return
+// 		}
 
-		res, errR := fut.Result()
-		if errR != nil {
-			assert.Fail(t, "Failed to wait stop actor %s", errR)
-			return
-		}
-
-		_, ok := res.(*Terminated)
-		if !ok {
-			assert.Fail(t, "Cannot cast %s", reflect.TypeOf(res))
-			return
-		}
-
-		_, found := ProcessRegistry.Get(actor)
-		assert.False(t, found)
-	}
-}
+// 		_, found := ProcessRegistry.Get(actor)
+// 		assert.False(t, found)
+// 	}
+// }

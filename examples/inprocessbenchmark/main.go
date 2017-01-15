@@ -6,6 +6,7 @@ import (
 	"runtime/pprof"
 
 	"github.com/AsynkronIT/protoactor-go/actor"
+	"github.com/AsynkronIT/protoactor-go/process"
 
 	"log"
 	"sync"
@@ -15,10 +16,10 @@ import (
 )
 
 type Msg struct {
-	replyTo *actor.PID
+	replyTo *process.PID
 }
 type Start struct {
-	Sender *actor.PID
+	Sender *process.PID
 }
 type Started struct{}
 
@@ -112,8 +113,8 @@ func main() {
 			WithMailbox(actor.NewUnboundedMailbox()).
 			WithDispatcher(d)
 
-		clients := make([]*actor.PID, 0)
-		echos := make([]*actor.PID, 0)
+		clients := make([]*process.PID, 0)
+		echos := make([]*process.PID, 0)
 		clientCount := runtime.NumCPU() * 2
 		for i := 0; i < clientCount; i++ {
 			client := actor.Spawn(clientProps)
@@ -139,9 +140,9 @@ func main() {
 		log.Printf("			%v			%s			%v", tp, elapsed, x)
 		for i := 0; i < clientCount; i++ {
 			client := clients[i]
-			client.StopFuture().Wait()
+			actor.StopActorFuture(client).Wait()
 			echo := echos[i]
-			echo.StopFuture().Wait()
+			actor.StopActorFuture(echo).Wait()
 		}
 		runtime.GC()
 		time.Sleep(2 * time.Second)

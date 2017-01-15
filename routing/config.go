@@ -2,6 +2,7 @@ package routing
 
 import (
 	"github.com/AsynkronIT/protoactor-go/actor"
+	"github.com/AsynkronIT/protoactor-go/process"
 )
 
 type RouterConfig interface {
@@ -19,7 +20,7 @@ type PoolRouterConfig interface {
 
 type GroupRouter struct {
 	RouterConfig
-	Routees *actor.PIDSet
+	Routees *process.PIDSet
 }
 
 type PoolRouter struct {
@@ -28,14 +29,14 @@ type PoolRouter struct {
 }
 
 func (config *GroupRouter) OnStarted(context actor.Context, props actor.Props, router RouterState) {
-	config.Routees.ForEach(func(i int, pid actor.PID) {
+	config.Routees.ForEach(func(i int, pid process.PID) {
 		context.Watch(&pid)
 	})
 	router.SetRoutees(config.Routees)
 }
 
 func (config *PoolRouter) OnStarted(context actor.Context, props actor.Props, router RouterState) {
-	var routees actor.PIDSet
+	var routees process.PIDSet
 	for i := 0; i < config.PoolSize; i++ {
 		routees.Add(context.Spawn(props))
 	}
@@ -43,7 +44,7 @@ func (config *PoolRouter) OnStarted(context actor.Context, props actor.Props, ro
 }
 
 func spawner(config RouterConfig) actor.Spawner {
-	return func(id string, props actor.Props, parent *actor.PID) *actor.PID {
+	return func(id string, props actor.Props, parent *process.PID) *process.PID {
 		return spawn(id, config, props, parent)
 	}
 }

@@ -3,7 +3,7 @@ package routing
 import (
 	"sync/atomic"
 
-	"github.com/AsynkronIT/protoactor-go/actor"
+	"github.com/AsynkronIT/protoactor-go/process"
 )
 
 type RoundRobinGroupRouter struct {
@@ -16,27 +16,27 @@ type RoundRobinPoolRouter struct {
 
 type RoundRobinState struct {
 	index   int32
-	routees *actor.PIDSet
-	values  []actor.PID
+	routees *process.PIDSet
+	values  []process.PID
 }
 
-func (state *RoundRobinState) SetRoutees(routees *actor.PIDSet) {
+func (state *RoundRobinState) SetRoutees(routees *process.PIDSet) {
 	state.routees = routees
 	state.values = routees.Values()
 }
 
-func (state *RoundRobinState) GetRoutees() *actor.PIDSet {
+func (state *RoundRobinState) GetRoutees() *process.PIDSet {
 	return state.routees
 }
 
-func (state *RoundRobinState) RouteMessage(message interface{}, sender *actor.PID) {
+func (state *RoundRobinState) RouteMessage(message interface{}, sender *process.PID) {
 	pid := roundRobinRoutee(&state.index, state.values)
 	pid.Request(message, sender)
 }
 
-func NewRoundRobinGroup(routees ...*actor.PID) GroupRouterConfig {
+func NewRoundRobinGroup(routees ...*process.PID) GroupRouterConfig {
 	r := &RoundRobinGroupRouter{}
-	r.Routees = actor.NewPIDSet(routees...)
+	r.Routees = process.NewPIDSet(routees...)
 	return r
 }
 
@@ -54,7 +54,7 @@ func (config *RoundRobinGroupRouter) CreateRouterState() RouterState {
 	return &RoundRobinState{}
 }
 
-func roundRobinRoutee(index *int32, routees []actor.PID) actor.PID {
+func roundRobinRoutee(index *int32, routees []process.PID) process.PID {
 	i := int(atomic.AddInt32(index, 1))
 	mod := len(routees)
 	routee := routees[i%mod]

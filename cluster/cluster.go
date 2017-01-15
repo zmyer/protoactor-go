@@ -13,7 +13,7 @@ func Start(clusterName, address string, provider ClusterProvider) {
 	h, p := gonet.GetAddress(address)
 	log.Printf("[CLUSTER] Starting Proto.Actor cluster on on %v:%v", h, p)
 	kinds := remoting.GetKnownKinds()
-	kindPIDMap = make(map[string]*actor.PID)
+	kindPIDMap = make(map[string]*process.PID)
 
 	//for each known kind, spin up a partition-kind actor to handle all requests for that kind
 	for _, kind := range kinds {

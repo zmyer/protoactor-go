@@ -3,7 +3,7 @@ package routing
 import (
 	"math/rand"
 
-	"github.com/AsynkronIT/protoactor-go/actor"
+	"github.com/AsynkronIT/protoactor-go/process"
 )
 
 type RandomGroupRouter struct {
@@ -15,20 +15,20 @@ type RandomPoolRouter struct {
 }
 
 type RandomRouterState struct {
-	routees *actor.PIDSet
-	values  []actor.PID
+	routees *process.PIDSet
+	values  []process.PID
 }
 
-func (state *RandomRouterState) SetRoutees(routees *actor.PIDSet) {
+func (state *RandomRouterState) SetRoutees(routees *process.PIDSet) {
 	state.routees = routees
 	state.values = routees.Values()
 }
 
-func (state *RandomRouterState) GetRoutees() *actor.PIDSet {
+func (state *RandomRouterState) GetRoutees() *process.PIDSet {
 	return state.routees
 }
 
-func (state *RandomRouterState) RouteMessage(message interface{}, sender *actor.PID) {
+func (state *RandomRouterState) RouteMessage(message interface{}, sender *process.PID) {
 	l := len(state.values)
 	r := rand.Intn(l)
 	pid := state.values[r]
@@ -41,9 +41,9 @@ func NewRandomPool(poolSize int) PoolRouterConfig {
 	return r
 }
 
-func NewRandomGroup(routees ...*actor.PID) GroupRouterConfig {
+func NewRandomGroup(routees ...*process.PID) GroupRouterConfig {
 	r := &RandomGroupRouter{}
-	r.Routees = actor.NewPIDSet(routees...)
+	r.Routees = process.NewPIDSet(routees...)
 	return r
 }
 

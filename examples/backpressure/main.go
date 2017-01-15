@@ -7,6 +7,7 @@ import (
 
 	console "github.com/AsynkronIT/goconsole"
 	"github.com/AsynkronIT/protoactor-go/actor"
+	"github.com/AsynkronIT/protoactor-go/process"
 )
 
 //sent to producer to request more work
@@ -15,7 +16,7 @@ type requestMoreWork struct {
 }
 type requestWorkBehavior struct {
 	tokens   int64
-	producer *actor.PID
+	producer *process.PID
 }
 
 func (m *requestWorkBehavior) MailboxStarted() {
@@ -41,7 +42,7 @@ func (m *requestWorkBehavior) requestMore() {
 
 type producer struct {
 	requestedWork int
-	worker        *actor.PID
+	worker        *process.PID
 }
 
 func (p *producer) Receive(ctx actor.Context) {

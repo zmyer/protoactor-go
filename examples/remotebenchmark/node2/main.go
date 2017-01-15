@@ -15,7 +15,7 @@ func main() {
 	runtime.GC()
 
 	remoting.Start("127.0.0.1:8080")
-	var sender *actor.PID
+	var sender *process.PID
 	props := actor.
 		FromFunc(
 			func(context actor.Context) {

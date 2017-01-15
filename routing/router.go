@@ -1,32 +1,35 @@
 package routing
 
-import "github.com/AsynkronIT/protoactor-go/actor"
+import (
+	"github.com/AsynkronIT/protoactor-go/actor"
+	"github.com/AsynkronIT/protoactor-go/process"
+)
 
 type routerProcess struct {
-	router *actor.PID
+	router *process.PID
 	state  RouterState
 }
 
-func (ref *routerProcess) SendUserMessage(pid *actor.PID, message interface{}, sender *actor.PID) {
+func (ref *routerProcess) SendUserMessage(pid *process.PID, message interface{}, sender *process.PID) {
 	if _, ok := message.(ManagementMessage); ok {
-		r, _ := actor.ProcessRegistry.Get(ref.router)
+		r, _ := process.ProcessRegistry.Get(ref.router)
 		r.SendUserMessage(pid, message, sender)
 	} else {
 		ref.state.RouteMessage(message, sender)
 	}
 }
 
-func (ref *routerProcess) SendSystemMessage(pid *actor.PID, message actor.SystemMessage) {
-	r, _ := actor.ProcessRegistry.Get(ref.router)
+func (ref *routerProcess) SendSystemMessage(pid *process.PID, message process.SystemMessage) {
+	r, _ := process.ProcessRegistry.Get(ref.router)
 	r.SendSystemMessage(pid, message)
 }
 
-func (ref *routerProcess) Stop(pid *actor.PID) {
+func (ref *routerProcess) Stop(pid *process.PID) {
 	ref.SendSystemMessage(pid, &actor.Stop{})
 }
 
 type RouterState interface {
-	RouteMessage(message interface{}, sender *actor.PID)
-	SetRoutees(routees *actor.PIDSet)
-	GetRoutees() *actor.PIDSet
+	RouteMessage(message interface{}, sender *process.PID)
+	SetRoutees(routees *process.PIDSet)
+	GetRoutees() *process.PIDSet
 }

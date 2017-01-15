@@ -3,7 +3,7 @@ package routing
 import (
 	"log"
 
-	"github.com/AsynkronIT/protoactor-go/actor"
+	"github.com/AsynkronIT/protoactor-go/process"
 	"github.com/serialx/hashring"
 )
 
@@ -21,14 +21,14 @@ type ConsistentHashPoolRouter struct {
 
 type ConsistentHashRouterState struct {
 	hashring  *hashring.HashRing
-	routeeMap map[string]*actor.PID
+	routeeMap map[string]*process.PID
 }
 
-func (state *ConsistentHashRouterState) SetRoutees(routees *actor.PIDSet) {
+func (state *ConsistentHashRouterState) SetRoutees(routees *process.PIDSet) {
 	//lookup from node name to PID
-	state.routeeMap = make(map[string]*actor.PID)
+	state.routeeMap = make(map[string]*process.PID)
 	nodes := make([]string, routees.Len())
-	routees.ForEach(func(i int, pid actor.PID) {
+	routees.ForEach(func(i int, pid process.PID) {
 		nodeName := pid.Address + "@" + pid.Id
 		nodes[i] = nodeName
 		state.routeeMap[nodeName] = &pid
@@ -37,15 +37,15 @@ func (state *ConsistentHashRouterState) SetRoutees(routees *actor.PIDSet) {
 	state.hashring = hashring.New(nodes)
 }
 
-func (state *ConsistentHashRouterState) GetRoutees() *actor.PIDSet {
-	var routees actor.PIDSet
+func (state *ConsistentHashRouterState) GetRoutees() *process.PIDSet {
+	var routees process.PIDSet
 	for _, v := range state.routeeMap {
 		routees.Add(v)
 	}
 	return &routees
 }
 
-func (state *ConsistentHashRouterState) RouteMessage(message interface{}, sender *actor.PID) {
+func (state *ConsistentHashRouterState) RouteMessage(message interface{}, sender *process.PID) {
 	switch msg := message.(type) {
 	case Hasher:
 		key := msg.Hash()
@@ -65,7 +65,7 @@ func (state *ConsistentHashRouterState) RouteMessage(message interface{}, sender
 	}
 }
 
-func (state *ConsistentHashRouterState) InvokeRouterManagementMessage(msg ManagementMessage, sender *actor.PID) {
+func (state *ConsistentHashRouterState) InvokeRouterManagementMessage(msg ManagementMessage, sender *process.PID) {
 
 }
 
@@ -75,9 +75,9 @@ func NewConsistentHashPool(poolSize int) PoolRouterConfig {
 	return r
 }
 
-func NewConsistentHashGroup(routees ...*actor.PID) GroupRouterConfig {
+func NewConsistentHashGroup(routees ...*process.PID) GroupRouterConfig {
 	r := &ConsistentHashGroupRouter{}
-	r.Routees = actor.NewPIDSet(routees...)
+	r.Routees = process.NewPIDSet(routees...)
 	return r
 }
 

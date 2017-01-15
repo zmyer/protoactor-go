@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/AsynkronIT/protoactor-go/actor"
+	"github.com/AsynkronIT/protoactor-go/process"
 )
 
 type server struct{}
@@ -30,7 +31,7 @@ func (s *server) Receive(stream Remoting_ReceiveServer) error {
 				}
 				endpointManagerPID.Tell(rt)
 			case actor.SystemMessage:
-				ref, _ := actor.ProcessRegistry.GetLocal(pid.Id)
+				ref, _ := process.ProcessRegistry.GetLocal(pid.Id)
 				ref.SendSystemMessage(pid, msg)
 			default:
 				pid.Request(message, sender)

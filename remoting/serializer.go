@@ -4,12 +4,12 @@ import (
 	"log"
 	"reflect"
 
-	"github.com/AsynkronIT/protoactor-go/actor"
+	"github.com/AsynkronIT/protoactor-go/process"
 	proto "github.com/gogo/protobuf/proto"
 	//proto "github.com/golang/protobuf/proto"
 )
 
-func serialize(message proto.Message, target *actor.PID, sender *actor.PID) (*MessageEnvelope, error) {
+func serialize(message proto.Message, target *process.PID, sender *process.PID) (*MessageEnvelope, error) {
 	typeName := proto.MessageName(message)
 	ensureGoGo(typeName)
 	bytes, err := proto.Marshal(message)

@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	memberlistPID *actor.PID
+	memberlistPID *process.PID
 )
 
 func spawnMembershipActor() {

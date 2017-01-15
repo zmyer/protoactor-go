@@ -1,8 +1,8 @@
 package remoting
 
-import "github.com/AsynkronIT/protoactor-go/actor"
+import "github.com/AsynkronIT/protoactor-go/process"
 
-func remoteHandler(pid *actor.PID) (actor.Process, bool) {
+func remoteHandler(pid *process.PID) (process.Process, bool) {
 	ref := newRemoteProcess(pid)
 	return ref, true
 }
