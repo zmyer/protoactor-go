@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AsynkronIT/protoactor-go/actor"
+	"github.com/AsynkronIT/protoactor-go/process"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -19,7 +19,7 @@ func TestRouterSendsUserMessageToChild(t *testing.T) {
 	p.On("SendUserMessage", mock.Anything, "hello", mock.Anything)
 	p.On("SendSystemMessage", mock.Anything, mock.Anything, mock.Anything)
 
-	s1 := actor.NewPIDSet(child)
+	s1 := process.NewPIDSet(child)
 
 	rs := new(testRouterState)
 	rs.On("SetRoutees", s1)
@@ -41,7 +41,7 @@ type testGroupRouter struct {
 
 func newGroupRouterConfig(routees ...*process.PID) *testGroupRouter {
 	r := new(testGroupRouter)
-	r.Routees = actor.NewPIDSet(routees...)
+	r.Routees = process.NewPIDSet(routees...)
 	return r
 }
 
@@ -53,10 +53,10 @@ func (m *testGroupRouter) CreateRouterState() RouterState {
 
 type testRouterState struct {
 	mock.Mock
-	routees *actor.PIDSet
+	routees *process.PIDSet
 }
 
-func (m *testRouterState) SetRoutees(routees *actor.PIDSet) {
+func (m *testRouterState) SetRoutees(routees *process.PIDSet) {
 	fmt.Println("SetRoutees")
 	m.Called(routees)
 	m.routees = routees
@@ -69,7 +69,7 @@ func (m *testRouterState) RouteMessage(message interface{}, sender *process.PID)
 	})
 }
 
-func (m *testRouterState) GetRoutees() *actor.PIDSet {
+func (m *testRouterState) GetRoutees() *process.PIDSet {
 	args := m.Called()
-	return args.Get(0).(*actor.PIDSet)
+	return args.Get(0).(*process.PIDSet)
 }

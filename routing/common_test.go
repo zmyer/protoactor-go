@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/AsynkronIT/protoactor-go/actor"
+	"github.com/AsynkronIT/protoactor-go/process"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -17,7 +18,7 @@ func init() {
 
 func spawnMockProcess(name string) (*process.PID, *mockProcess) {
 	p := &mockProcess{}
-	pid, ok := actor.ProcessRegistry.Add(p, name)
+	pid, ok := process.ProcessRegistry.Add(p, name)
 	if !ok {
 		panic(fmt.Errorf("did not spawn named process '%s'", name))
 	}
@@ -26,7 +27,7 @@ func spawnMockProcess(name string) (*process.PID, *mockProcess) {
 }
 
 func removeMockProcess(pid *process.PID) {
-	actor.ProcessRegistry.Remove(pid)
+	process.ProcessRegistry.Remove(pid)
 }
 
 type mockProcess struct {
@@ -36,7 +37,7 @@ type mockProcess struct {
 func (m *mockProcess) SendUserMessage(pid *process.PID, message interface{}, sender *process.PID) {
 	m.Called(pid, message, sender)
 }
-func (m *mockProcess) SendSystemMessage(pid *process.PID, message actor.SystemMessage) {
+func (m *mockProcess) SendSystemMessage(pid *process.PID, message process.SystemMessage) {
 	m.Called(pid, message)
 }
 func (m *mockProcess) Stop(pid *process.PID) {
