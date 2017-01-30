@@ -125,6 +125,10 @@ func (m *mockContext) Respond(response interface{}) {
 	m.Called(response)
 }
 
+func (m *mockContext) Tell(message interface{}, target *actor.PID) {
+	m.Called(message, target)
+}
+
 func (m *mockContext) Actor() actor.Actor {
 	args := m.Called()
 	return args.Get(0).(actor.Actor)
@@ -132,4 +136,9 @@ func (m *mockContext) Actor() actor.Actor {
 
 func (m *mockContext) AwaitFuture(f *actor.Future, cont func(res interface{}, err error)) {
 	m.Called(f, cont)
+}
+
+func (m *mockContext) Meta() actor.ActorMeta {
+	args := m.Called()
+	return args.Get(0).(actor.ActorMeta)
 }

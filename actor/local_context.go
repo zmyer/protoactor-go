@@ -26,6 +26,7 @@ type localContext struct {
 	receiveTimeout time.Duration
 	t              *time.Timer
 	restartStats   *RestartStatistics
+	meta           ActorMeta
 }
 
 func newLocalContext(producer Producer, supervisor SupervisorStrategy, middleware ActorFunc, parent *PID) *localContext {
@@ -382,4 +383,15 @@ func (ctx *localContext) AwaitFuture(f *Future, cont func(res interface{}, err e
 			message: ctx.message,
 		})
 	})
+}
+
+func (ctx *localContext) Tell(message interface{}, target *PID) {
+	target.Tell(message)
+}
+
+func (ctx *localContext) Meta() ActorMeta {
+	if ctx.meta == nil {
+		ctx.meta = make(map[string]string)
+	}
+	return ctx.meta
 }

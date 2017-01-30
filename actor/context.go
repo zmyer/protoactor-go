@@ -66,4 +66,10 @@ type Context interface {
 	Actor() Actor
 
 	AwaitFuture(f *Future, continuation func(res interface{}, err error))
+
+	//Tell a message to the target PID
+	Tell(message interface{}, target *PID)
+
+	// Meta returns the actor meta data
+	Meta() ActorMeta
 }
