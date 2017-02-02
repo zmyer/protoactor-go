@@ -1,7 +1,6 @@
 package mailbox
 
 import (
-	"runtime"
 	"sync/atomic"
 
 	"github.com/AsynkronIT/protoactor-go/internal/queue/mpsc"
@@ -72,7 +71,7 @@ func (m *defaultMailbox) schedule() {
 
 func (m *defaultMailbox) processMessages() {
 
-process:
+	//process:
 	m.run()
 
 	// set mailbox to idle
@@ -82,10 +81,7 @@ process:
 	// check if there are still messages to process (sent after the message loop ended)
 	if sys > 0 || (!m.suspended && user > 0) {
 		// try setting the mailbox back to running
-		if atomic.CompareAndSwapInt32(&m.schedulerStatus, idle, running) {
-			//	fmt.Printf("looping %v %v %v\n", sys, user, m.suspended)
-			goto process
-		}
+		m.schedule()
 	}
 
 	for _, ms := range m.mailboxStats {
@@ -103,14 +99,8 @@ func (m *defaultMailbox) run() {
 		}
 	}()
 
-	i, t := 0, m.dispatcher.Throughput()
-	for {
-		if i > t {
-			i = 0
-			runtime.Gosched()
-		}
-
-		i++
+	t := m.dispatcher.Throughput()
+	for i := 0; i < t; i++ {
 
 		// keep processing system messages until queue is empty
 		if msg = m.systemMailbox.Pop(); msg != nil {

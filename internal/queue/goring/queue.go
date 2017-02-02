@@ -1,9 +1,6 @@
 package goring
 
-import (
-	"sync"
-	"sync/atomic"
-)
+import "sync"
 
 type ringBuffer struct {
 	buffer []interface{}
@@ -54,13 +51,13 @@ func (q *Queue) Push(item interface{}) {
 		}
 		q.content = newContent
 	}
-	atomic.AddInt64(&q.len, 1)
+	q.len = q.len + 1
 	q.content.buffer[q.content.tail] = item
 	q.lock.Unlock()
 }
 
 func (q *Queue) Length() int64 {
-	return atomic.LoadInt64(&q.len)
+	return q.len
 }
 
 func (q *Queue) Empty() bool {
@@ -70,35 +67,36 @@ func (q *Queue) Empty() bool {
 //single consumer
 func (q *Queue) Pop() (interface{}, bool) {
 
+	q.lock.Lock()
 	if q.Empty() {
+		q.lock.Unlock()
 		return nil, false
 	}
 	//as we are a single consumer, no other thread can have poped the items there are guaranteed to be items now
 
-	q.lock.Lock()
 	c := q.content
 	c.head++
 	pos := c.head % c.mod
 	res := c.buffer[pos]
 	c.buffer[pos] = nil
-	atomic.AddInt64(&q.len, -1)
+	q.len = q.len - 1
 	q.lock.Unlock()
 	return res, true
 }
 
 func (q *Queue) PopMany(count int64) ([]interface{}, bool) {
-
+	q.lock.Lock()
 	if q.Empty() {
+		q.lock.Unlock()
 		return nil, false
 	}
 
-	q.lock.Lock()
 	c := q.content
 
 	if count >= q.len {
 		count = q.len
 	}
-	atomic.AddInt64(&q.len, -count)
+	q.len = q.len - count
 
 	buffer := make([]interface{}, count)
 	for i := int64(0); i < count; i++ {
