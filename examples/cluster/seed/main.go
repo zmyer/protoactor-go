@@ -13,8 +13,8 @@ import (
 
 func main() {
 
-	//this node knows about Hello kind
-	remote.Register("Hello", actor.FromProducer(func() actor.Actor {
+	// this node knows about Hello kind
+	remote.Register("Hello", actor.PropsFromProducer(func() actor.Actor {
 		return &shared.HelloActor{}
 	}))
 
@@ -32,4 +32,6 @@ func main() {
 	}
 	log.Printf("Message from grain: %v", res.Message)
 	console.ReadLine()
+
+	cluster.Shutdown(true)
 }

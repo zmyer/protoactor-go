@@ -37,11 +37,11 @@ func (a *GorgeousActor) Receive(context Context) {
 func TestLookupById(t *testing.T) {
 	ID := "UniqueID"
 	{
-		props := FromInstance(&GorgeousActor{Counter: Counter{value: 0}})
-		actor, _ := SpawnNamed(props, ID)
-		defer actor.Stop()
+		props := PropsFromProducer(func() Actor { return &GorgeousActor{Counter: Counter{value: 0}} })
+		pid, _ := rootContext.SpawnNamed(props, ID)
+		defer pid.Stop()
 
-		result := actor.RequestFuture(Increment{}, testTimeout)
+		result := rootContext.RequestFuture(pid, Increment{}, testTimeout)
 		value, err := result.Result()
 		if err != nil {
 			assert.Fail(t, "timed out")
@@ -51,9 +51,9 @@ func TestLookupById(t *testing.T) {
 		assert.Equal(t, 1, value.(int))
 	}
 	{
-		props := FromInstance(&GorgeousActor{Counter: Counter{value: 0}})
-		actor, _ := SpawnNamed(props, ID)
-		result := actor.RequestFuture(Increment{}, testTimeout)
+		props := PropsFromProducer(func() Actor { return &GorgeousActor{Counter: Counter{value: 0}} })
+		pid, _ := rootContext.SpawnNamed(props, ID)
+		result := rootContext.RequestFuture(pid, Increment{}, testTimeout)
 		value, err := result.Result()
 		if err != nil {
 			assert.Fail(t, "timed out")

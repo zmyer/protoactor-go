@@ -11,18 +11,21 @@ import (
 // optimization avoids serializing router messages through an actor
 type process struct {
 	router   *actor.PID
-	state    Interface
+	state    RouterState
 	mu       sync.Mutex
 	watchers actor.PIDSet
 	stopping int32
 }
 
-func (ref *process) SendUserMessage(pid *actor.PID, message interface{}, sender *actor.PID) {
-	if _, ok := message.(ManagementMessage); ok {
-		r, _ := actor.ProcessRegistry.Get(ref.router)
-		r.SendUserMessage(pid, message, sender)
+func (ref *process) SendUserMessage(pid *actor.PID, message interface{}) {
+	_, msg, _ := actor.UnwrapEnvelope(message)
+	if _, ok := msg.(ManagementMessage); !ok {
+		ref.state.RouteMessage(message)
 	} else {
-		ref.state.RouteMessage(message, sender)
+		r, _ := actor.ProcessRegistry.Get(ref.router)
+		// Always send the original message to the router actor,
+		// since if the message is enveloped, the sender need to get a response.
+		r.SendUserMessage(pid, message)
 	}
 }
 

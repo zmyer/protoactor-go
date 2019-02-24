@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 )
 
 func TestFuture_PipeTo_Message(t *testing.T) {
@@ -20,9 +19,9 @@ func TestFuture_PipeTo_Message(t *testing.T) {
 
 	f := NewFuture(1 * time.Second)
 
-	p1.On("SendUserMessage", a1, "hello", nilPID)
-	p2.On("SendUserMessage", a2, "hello", nilPID)
-	p3.On("SendUserMessage", a3, "hello", nilPID)
+	p1.On("SendUserMessage", a1, "hello")
+	p2.On("SendUserMessage", a2, "hello")
+	p3.On("SendUserMessage", a3, "hello")
 
 	f.PipeTo(a1)
 	f.PipeTo(a2)
@@ -32,8 +31,10 @@ func TestFuture_PipeTo_Message(t *testing.T) {
 	assert.IsType(t, &futureProcess{}, ref)
 	fp, _ := ref.(*futureProcess)
 
-	fp.SendUserMessage(f.pid, "hello", nil)
-	mock.AssertExpectationsForObjects(t, p1, p2, p3)
+	fp.SendUserMessage(f.pid, "hello")
+	p1.AssertExpectations(t)
+	p2.AssertExpectations(t)
+	p3.AssertExpectations(t)
 	assert.Empty(t, fp.pipes, "pipes were not cleared")
 }
 
@@ -47,9 +48,9 @@ func TestFuture_PipeTo_TimeoutSendsError(t *testing.T) {
 		removeMockProcess(a3)
 	}()
 
-	p1.On("SendUserMessage", a1, ErrTimeout, nilPID)
-	p2.On("SendUserMessage", a2, ErrTimeout, nilPID)
-	p3.On("SendUserMessage", a3, ErrTimeout, nilPID)
+	p1.On("SendUserMessage", a1, ErrTimeout)
+	p2.On("SendUserMessage", a2, ErrTimeout)
+	p3.On("SendUserMessage", a3, ErrTimeout)
 
 	f := NewFuture(10 * time.Millisecond)
 	ref, _ := ProcessRegistry.Get(f.pid)
@@ -64,7 +65,9 @@ func TestFuture_PipeTo_TimeoutSendsError(t *testing.T) {
 	assert.IsType(t, &futureProcess{}, ref)
 	fp, _ := ref.(*futureProcess)
 
-	mock.AssertExpectationsForObjects(t, p1, p2, p3)
+	p1.AssertExpectations(t)
+	p2.AssertExpectations(t)
+	p3.AssertExpectations(t)
 	assert.Empty(t, fp.pipes, "pipes were not cleared")
 }
 

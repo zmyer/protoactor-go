@@ -46,12 +46,14 @@ func TestPoolRouterActor_Receive_RemoveRoute(t *testing.T) {
 
 	p1, pr1 := spawnMockProcess("p1")
 	defer removeMockProcess(p1)
-	pr1.On("SendUserMessage", p1, &actor.PoisonPill{}, nilPID).Once()
+	pr1.On("SendUserMessage", p1, &actor.PoisonPill{}).Once()
 
 	p2 := actor.NewLocalPID("p2")
 	c := new(mockContext)
 	c.On("Message").Return(&RemoveRoutee{p1})
 	c.On("Unwatch", p1).Once()
+
+	c.On("Send")
 
 	state.On("GetRoutees").Return(actor.NewPIDSet(p1, p2))
 	state.On("SetRoutees", actor.NewPIDSet(p2)).Once()
@@ -68,7 +70,7 @@ func TestPoolRouterActor_Receive_BroadcastMessage(t *testing.T) {
 	p2 := actor.NewLocalPID("p2")
 
 	child := new(mockProcess)
-	child.On("SendUserMessage", mock.Anything, mock.Anything, mock.Anything).Times(2)
+	child.On("SendUserMessage", mock.Anything, mock.Anything).Times(2)
 
 	actor.ProcessRegistry.Add(child, "p1")
 	actor.ProcessRegistry.Add(child, "p2")
@@ -80,6 +82,7 @@ func TestPoolRouterActor_Receive_BroadcastMessage(t *testing.T) {
 	c := new(mockContext)
 	c.On("Message").Return(&BroadcastMessage{"hi"})
 	c.On("Sender").Return((*actor.PID)(nil))
+	c.On("RequestWithCustomSender").Twice()
 
 	state.On("GetRoutees").Return(actor.NewPIDSet(p1, p2))
 

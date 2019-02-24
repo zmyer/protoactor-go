@@ -17,3 +17,9 @@ type ActorFunc func(c Context)
 func (f ActorFunc) Receive(c Context) {
 	f(c)
 }
+
+type ReceiverFunc func(c ReceiverContext, envelope *MessageEnvelope)
+
+type SenderFunc func(c SenderContext, target *PID, envelope *MessageEnvelope)
+
+type ContextDecoratorFunc func(ctx Context) Context

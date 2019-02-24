@@ -2,6 +2,8 @@ package router
 
 import (
 	"math/rand"
+	"sync/atomic"
+	"unsafe"
 
 	"github.com/AsynkronIT/protoactor-go/actor"
 )
@@ -16,37 +18,43 @@ type randomPoolRouter struct {
 
 type randomRouterState struct {
 	routees *actor.PIDSet
-	values  []actor.PID
+	values  *[]actor.PID
 }
 
 func (state *randomRouterState) SetRoutees(routees *actor.PIDSet) {
 	state.routees = routees
-	state.values = routees.Values()
+	values := routees.Values()
+	atomic.SwapPointer((*unsafe.Pointer)(unsafe.Pointer(&state.values)), unsafe.Pointer(&values))
 }
 
 func (state *randomRouterState) GetRoutees() *actor.PIDSet {
 	return state.routees
 }
 
-func (state *randomRouterState) RouteMessage(message interface{}, sender *actor.PID) {
-	l := len(state.values)
-	r := rand.Intn(l)
-	pid := state.values[r]
-	pid.Request(message, sender)
+func (state *randomRouterState) RouteMessage(message interface{}) {
+	pid := randomRoutee(*state.values)
+	rootContext.Send(&pid, message)
 }
 
 func NewRandomPool(size int) *actor.Props {
-	return actor.FromSpawnFunc(spawner(&randomPoolRouter{PoolRouter{PoolSize: size}}))
+	return (&actor.Props{}).WithSpawnFunc(spawner(&randomPoolRouter{PoolRouter{PoolSize: size}}))
 }
 
 func NewRandomGroup(routees ...*actor.PID) *actor.Props {
-	return actor.FromSpawnFunc(spawner(&randomGroupRouter{GroupRouter{Routees: actor.NewPIDSet(routees...)}}))
+	return (&actor.Props{}).WithSpawnFunc(spawner(&randomGroupRouter{GroupRouter{Routees: actor.NewPIDSet(routees...)}}))
 }
 
-func (config *randomPoolRouter) CreateRouterState() Interface {
+func (config *randomPoolRouter) CreateRouterState() RouterState {
 	return &randomRouterState{}
 }
 
-func (config *randomGroupRouter) CreateRouterState() Interface {
+func (config *randomGroupRouter) CreateRouterState() RouterState {
 	return &randomRouterState{}
+}
+
+func randomRoutee(routees []actor.PID) actor.PID {
+	l := len(routees)
+	r := rand.Intn(l)
+	pid := routees[r]
+	return pid
 }

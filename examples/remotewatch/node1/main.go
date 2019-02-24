@@ -13,22 +13,24 @@ func main() {
 	timeout := 5 * time.Second
 	remote.Start("127.0.0.1:8081")
 
-	props := actor.FromFunc(func(ctx actor.Context) {
+	context := actor.EmptyRootContext()
+	props := actor.PropsFromFunc(func(ctx actor.Context) {
 		switch msg := ctx.Message().(type) {
 		case *actor.Started:
 			log.Println("Local actor started")
-			pid, err := remote.SpawnNamed("127.0.0.1:8080", "myRemote", "remote", timeout)
+			pidResp, err := remote.SpawnNamed("127.0.0.1:8080", "myRemote", "remote", timeout)
 			if err != nil {
 				log.Print("Local failed to spawn remote actor")
 				return
 			}
 			log.Println("Local spawned remote actor")
-			ctx.Watch(pid)
+			ctx.Watch(pidResp.Pid)
 			log.Println("Local is watching remote actor")
 		case *actor.Terminated:
 			log.Printf("Local got terminated message %+v", msg)
 		}
 	})
-	actor.Spawn(props)
+
+	context.Spawn(props)
 	console.ReadLine()
 }

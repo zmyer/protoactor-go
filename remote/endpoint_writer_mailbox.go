@@ -5,7 +5,7 @@ import (
 	"sync/atomic"
 
 	"github.com/AsynkronIT/protoactor-go/internal/queue/goring"
-	"github.com/AsynkronIT/protoactor-go/internal/queue/lfqueue"
+	"github.com/AsynkronIT/protoactor-go/internal/queue/mpsc"
 	"github.com/AsynkronIT/protoactor-go/log"
 	"github.com/AsynkronIT/protoactor-go/mailbox"
 )
@@ -21,7 +21,7 @@ const (
 
 type endpointWriterMailbox struct {
 	userMailbox     *goring.Queue
-	systemMailbox   *lfqueue.LockfreeQueue
+	systemMailbox   *mpsc.Queue
 	schedulerStatus int32
 	hasMoreMessages int32
 	invoker         mailbox.MessageInvoker
@@ -31,7 +31,7 @@ type endpointWriterMailbox struct {
 }
 
 func (m *endpointWriterMailbox) PostUserMessage(message interface{}) {
-	//batching mailbox only use the message part
+	// batching mailbox only use the message part
 	m.userMailbox.Push(message)
 	m.schedule()
 }
@@ -41,15 +41,23 @@ func (m *endpointWriterMailbox) PostSystemMessage(message interface{}) {
 	m.schedule()
 }
 
+func (m *endpointWriterMailbox) RegisterHandlers(invoker mailbox.MessageInvoker, dispatcher mailbox.Dispatcher) {
+	m.invoker = invoker
+	m.dispatcher = dispatcher
+}
+
+func (m *endpointWriterMailbox) Start() {
+}
+
 func (m *endpointWriterMailbox) schedule() {
-	atomic.StoreInt32(&m.hasMoreMessages, mailboxHasMoreMessages) //we have more messages to process
+	atomic.StoreInt32(&m.hasMoreMessages, mailboxHasMoreMessages) // we have more messages to process
 	if atomic.CompareAndSwapInt32(&m.schedulerStatus, mailboxIdle, mailboxRunning) {
 		m.dispatcher.Schedule(m.processMessages)
 	}
 }
 
 func (m *endpointWriterMailbox) processMessages() {
-	//we are about to start processing messages, we can safely reset the message flag of the mailbox
+	// we are about to start processing messages, we can safely reset the message flag of the mailbox
 	atomic.StoreInt32(&m.hasMoreMessages, mailboxHasNoMessages)
 process:
 	m.run()
@@ -106,21 +114,16 @@ func (m *endpointWriterMailbox) run() {
 	}
 }
 
-func newEndpointWriterMailbox(batchSize, initialSize int) mailbox.Producer {
-	return func(invoker mailbox.MessageInvoker, dispatcher mailbox.Dispatcher) mailbox.Inbound {
+func endpointWriterMailboxProducer(batchSize, initialSize int) mailbox.Producer {
+	return func() mailbox.Mailbox {
 		userMailbox := goring.New(int64(initialSize))
-		systemMailbox := lfqueue.NewLockfreeQueue()
+		systemMailbox := mpsc.New()
 		return &endpointWriterMailbox{
 			userMailbox:     userMailbox,
 			systemMailbox:   systemMailbox,
 			hasMoreMessages: mailboxHasNoMessages,
 			schedulerStatus: mailboxIdle,
 			batchSize:       batchSize,
-			invoker:         invoker,
-			dispatcher:      dispatcher,
 		}
 	}
-}
-
-func (m *endpointWriterMailbox) Start() {
 }

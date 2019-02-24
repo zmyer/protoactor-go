@@ -83,30 +83,40 @@ For a more indepth description of the differences, see this thread [Actors vs. C
 
 You need to ensure that your `$GOPATH` variable is properly set.
 
-Next, install the [standard protocol buffer implementation](https://github.com/google/protobuf) and run the following commands to get all the neccessary tooling:
+Next, install the [standard protocol buffer implementation](https://github.com/google/protobuf) and run the following commands to get all the necessary tooling:
+
 ```
-go get github.com/gogo/protobuf/proto
-go get github.com/gogo/protobuf/protoc-gen-gogo
-go get github.com/gogo/protobuf/gogoproto
-go get github.com/gogo/protobuf/protoc-gen-gofast
-go get google.golang.org/grpc
-go get github.com/gogo/protobuf/protoc-gen-gogofast
-go get github.com/gogo/protobuf/protoc-gen-gogofaster
-go get github.com/gogo/protobuf/protoc-gen-gogoslick
-go get github.com/Workiva/go-datastructures/queue
-go get github.com/emirpasic/gods/stacks/linkedliststack
-go get github.com/orcaman/concurrent-map
-go get github.com/AsynkronIT/gonet
-go get github.com/hashicorp/consul/api
-go get github.com/AsynkronIT/goconsole
-go get github.com/emirpasic/gods/sets/hashset
-go get github.com/serialx/hashring
-go get github.com/couchbase/gocb
+go get github.com/AsynkronIT/protoactor-go/...
+cd $GOPATH/src/github.com/AsynkronIT/protoactor-go
+go get ./...
+make
 ```
 
-Finally, run the `make` tool in the package's root to generate the protobuf definitions and build the packages.
+After invoking last command you will have generated protobuf definitions and built the project.
 
 Windows users can use Cygwin to run make: [www.cygwin.com](https://www.cygwin.com/)
+
+## Testing
+
+This command exectutes all tests in the repository except for consul integration tests (you need consul for running those tests). We also skip directories that don't contain any tests.
+
+```
+go test `go list ./... | grep -v consul` | grep -v 'no test files'
+```
+
+If everything is ok, you will get the output:
+
+```
+ok  	github.com/AsynkronIT/protoactor-go/actor	0.115s
+ok  	github.com/AsynkronIT/protoactor-go/eventstream	0.020s
+ok  	github.com/AsynkronIT/protoactor-go/internal/queue/goring	2.524s
+ok  	github.com/AsynkronIT/protoactor-go/internal/queue/mpsc	2.385s
+ok  	github.com/AsynkronIT/protoactor-go/log	0.017s
+ok  	github.com/AsynkronIT/protoactor-go/mailbox	2.742s
+ok  	github.com/AsynkronIT/protoactor-go/plugin	1.227s
+ok  	github.com/AsynkronIT/protoactor-go/router	1.836s
+ok  	github.com/AsynkronIT/protoactor-go/stream	0.017s
+```
 
 ## Hello world
 
@@ -122,8 +132,12 @@ func (state *HelloActor) Receive(context actor.Context) {
 }
 
 func main() {
-    props := actor.FromInstance(&HelloActor{})
-    pid := actor.Spawn(props)
+    context := actor.EmptyRootContext()
+    props := actor.PropsFromProducer(func() actor.Actor { return &HelloActor{} })
+    pid, err := context.Spawn(props)
+    if err != nil {
+        panic(err)
+    }
     pid.Tell(Hello{Who: "Roger"})
     console.ReadLine()
 }
@@ -155,8 +169,12 @@ func NewSetBehaviorActor() actor.Actor {
 }
 
 func main() {
-    props := actor.FromProducer(NewSetBehaviorActor)
-    pid := actor.Spawn(props)
+    context := actor.EmptyRootContext()
+    props := actor.PropsFromProducer(NewSetBehaviorActor)
+    pid, err := context.Spawn(props)
+    if err != nil {
+        panic(err)
+    }
     pid.Tell(Hello{Who: "Roger"})
     pid.Tell(Hello{Who: "Roger"})
     console.ReadLine()
@@ -187,16 +205,20 @@ func (state *HelloActor) Receive(context actor.Context) {
 }
 
 func main() {
-    props := actor.FromInstance(&HelloActor{})
-    actor := actor.Spawn(props)
-    actor.Tell(Hello{Who: "Roger"})
+    context := actor.EmptyRootContext()
+    props := actor.PropsFromProducer(func() actor.Actor { return &HelloActor{} })
+    pid, err := context.Spawn(props)
+    if err != nil {
+        panic(err)
+    }
+    actor.Tell(pid, Hello{Who: "Roger"})
 
-    //why wait?
-    //Stop is a system message and is not processed through the user message mailbox
-    //thus, it will be handled _before_ any user message
-    //we only do this to show the correct order of events in the console
+    // why wait?
+    // Stop is a system message and is not processed through the user message mailbox
+    // thus, it will be handled _before_ any user message
+    // we only do this to show the correct order of events in the console
     time.Sleep(1 * time.Second)
-    actor.Stop()
+    pid.Stop()
 
     console.ReadLine()
 }
@@ -217,7 +239,7 @@ type ParentActor struct{}
 func (state *ParentActor) Receive(context actor.Context) {
     switch msg := context.Message().(type) {
     case Hello:
-        props := actor.FromProducer(NewChildActor)
+        props := actor.PropsFromProducer(NewChildActor)
         child := context.Spawn(props)
         child.Tell(msg)
     }
@@ -250,17 +272,22 @@ func NewChildActor() actor.Actor {
 }
 
 func main() {
-    decider := func(child *actor.PID, reason interface{}) actor.Directive {
+    decider := func(reason interface{}) actor.Directive {
         fmt.Println("handling failure for child")
         return actor.StopDirective
     }
     supervisor := actor.NewOneForOneStrategy(10, 1000, decider)
+
+    context := actor.EmptyRootContext()
     props := actor.
         FromProducer(NewParentActor).
         WithSupervisor(supervisor)
 
-    pid := actor.Spawn(props)
-    pid.Tell(Hello{Who: "Roger"})
+    pid, err := context.Spawn(props)
+    if err != nil {
+        panic(err)
+    }
+    context.Send(pid, Hello{Who: "Roger"})
 
     console.ReadLine()
 }
@@ -275,12 +302,12 @@ Proto Actor's networking layer is built as a thin wrapper ontop of gRPC and mess
 #### Node 1
 
 ```go
-type MyActor struct{
+type MyActor struct {
     count int
 }
 
 func (state *MyActor) Receive(context actor.Context) {
-    switch msg := context.Message().(type) {
+    switch context.Message().(type) {
     case *messages.Response:
         state.count++
         fmt.Println(state.count)
@@ -288,15 +315,20 @@ func (state *MyActor) Receive(context actor.Context) {
 }
 
 func main() {
-    remote.StartServer("localhost:8090")
+    remote.Start("localhost:8090")
 
-    pid := actor.SpawnTemplate(&MyActor{})
+    rootCtx := actor.EmptyRootContext()
+    props := actor.PropsFromProducer(func() actor.Actor { return &MyActor{} })
+    pid, _ := rootCtx.Spawn(props)
     message := &messages.Echo{Message: "hej", Sender: pid}
 
-    //this is the remote actor we want to communicate with
-    remote := actor.NewPID("localhost:8091", "myactor")
+    // this is to spawn remote actor we want to communicate with
+    spawnResponse, _ := remote.SpawnNamed("localhost:8091", "myactor", "hello", time.Second)
+
+    // get spawned PID
+    spawnedPID := spawnResponse.Pid
     for i := 0; i < 10; i++ {
-        remote.Tell(message)
+        rootCtx.Send(spawnedPID, message)
     }
 
     console.ReadLine()
@@ -311,18 +343,17 @@ type MyActor struct{}
 func (*MyActor) Receive(context actor.Context) {
     switch msg := context.Message().(type) {
     case *messages.Echo:
-        msg.Sender.Tell(&messages.Response{
+        context.Send(msg.Sender, &messages.Response{
             SomeValue: "result",
         })
     }
 }
 
 func main() {
-    remote.StartServer("localhost:8091")
-    pid := actor.SpawnTemplate(&MyActor{})
+    remote.Start("localhost:8091")
 
-    //register a name for our local actor so that it can be discovered remotely
-    actor.ProcessRegistry.Register("myactor", pid)
+    // register a name for our local actor so that it can be spawned remotely
+    remote.Register("hello", actor.PropsFromProducer(func() actor.Actor { return &MyActor{} }))
     console.ReadLine()
 }
 ```
@@ -332,19 +363,23 @@ func main() {
 ```proto
 syntax = "proto3";
 package messages;
-import "actor.proto"; //we need to import actor.proto, so our messages can include PID's
+import "actor.proto"; // we need to import actor.proto, so our messages can include PID's
 
-//this is the message the actor on node 1 will send to the remote actor on node 2
+// this is the message the actor on node 1 will send to the remote actor on node 2
 message Echo {
-  actor.PID Sender = 1; //this is the PID the remote actor should reply to
+  actor.PID Sender = 1; // this is the PID the remote actor should reply to
   string Message = 2;
 }
 
-//this is the message the remote actor should reply with
+// this is the message the remote actor should reply with
 message Response {
   string SomeValue = 1;
 }
 ```
+Notice: always use "gogoslick_out" instead of "go_out" when generating proto code. "gogoslick_out" will create type names which will be used during serialization.
 
 For more examples, see the example folder in this repository.
 
+### Support
+
+Many thanks to [JetBrains](https://www.jetbrains.com) for support!

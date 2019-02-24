@@ -1,21 +1,22 @@
 syntax = "proto3";
 package actor;
 
-//import "google/protobuf/any.proto";
+// import "google/protobuf/any.proto";
 import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 
 option (gogoproto.gostring_all) = false;
 
 message PID {
+    option (gogoproto.typedecl) = false;
     option (gogoproto.stringer) = false;
-    string Address = 1;
-    string Id = 2;
+    string address = 1;
+    string id = 2;
 }
 
-//user messages
+// user messages
 message PoisonPill {}
 
-//system messages
+// system messages
 message Watch {
     PID watcher = 1;
 }
@@ -26,7 +27,7 @@ message Unwatch {
 
 message Terminated {
     PID who = 1;
-    bool AddressTerminated = 2;
+    bool address_terminated = 2;
 }
 
 message Stop {}

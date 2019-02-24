@@ -8,20 +8,29 @@ import (
 	"time"
 )
 
+type ioLogger struct {
+	c   chan Event
+	out io.Writer
+	buf []byte
+}
+
 var (
 	sub *Subscription
 )
 
 func init() {
-	l := &ioLogger{out: os.Stderr}
+	l := &ioLogger{c: make(chan Event, 100), out: os.Stderr}
 	sub = Subscribe(func(evt Event) {
-		l.WriteEvent(evt)
+		l.c <- evt
 	})
+	go l.listenEvent()
 }
 
-type ioLogger struct {
-	out io.Writer
-	buf []byte
+func (l *ioLogger) listenEvent() {
+	for true {
+		e := <-l.c
+		l.writeEvent(e)
+	}
 }
 
 // Cheap integer to fixed-width decimal ASCII.  Give a negative width to avoid zero-padding.
@@ -61,8 +70,8 @@ func (l *ioLogger) formatHeader(buf *[]byte, prefix string, t time.Time) {
 	itoa(buf, sec, 2)
 
 	// no microseconds
-	//*buf = append(*buf, '.')
-	//itoa(buf, t.Nanosecond()/1e3, 6)
+	// *buf = append(*buf, '.')
+	// itoa(buf, t.Nanosecond()/1e3, 6)
 
 	*buf = append(*buf, ' ')
 	if len(prefix) > 0 {
@@ -71,7 +80,7 @@ func (l *ioLogger) formatHeader(buf *[]byte, prefix string, t time.Time) {
 	}
 }
 
-func (l *ioLogger) WriteEvent(e Event) {
+func (l *ioLogger) writeEvent(e Event) {
 	l.buf = l.buf[:0]
 	l.formatHeader(&l.buf, e.Prefix, e.Time)
 	l.out.Write(l.buf)
@@ -97,7 +106,7 @@ type ioEncoder struct {
 }
 
 func (e ioEncoder) EncodeBool(key string, val bool) {
-	fmt.Fprintf(e, "%s=%b", key, val)
+	fmt.Fprintf(e, "%s=%t", key, val)
 }
 
 func (e ioEncoder) EncodeFloat64(key string, val float64) {

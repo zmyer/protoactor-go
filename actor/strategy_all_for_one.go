@@ -25,46 +25,45 @@ func (strategy *allForOneStrategy) HandleFailure(supervisor Supervisor, child *P
 	directive := strategy.decider(reason)
 	switch directive {
 	case ResumeDirective:
-		//resume the failing child
+		// resume the failing child
 		logFailure(child, reason, directive)
-		supervisor.RestartChildren(child)
+		supervisor.ResumeChildren(child)
 	case RestartDirective:
 		children := supervisor.Children()
-		//try restart the all the children
-		if strategy.requestRestartPermission(rs) {
-			logFailure(child, reason, RestartDirective)
-			supervisor.RestartChildren(children...)
-		} else {
+		// try restart the all the children
+		if strategy.shouldStop(rs) {
 			logFailure(child, reason, StopDirective)
 			supervisor.StopChildren(children...)
+		} else {
+			logFailure(child, reason, RestartDirective)
+			supervisor.RestartChildren(children...)
 		}
 	case StopDirective:
 		children := supervisor.Children()
-		//stop all the children, no need to involve the crs
+		// stop all the children, no need to involve the crs
 		logFailure(child, reason, directive)
 		supervisor.StopChildren(children...)
 	case EscalateDirective:
-		//send failure to parent
-		//supervisor mailbox
-		//do not log here, log in the parent handling the error
-		supervisor.EscalateFailure(reason, message)
+		// send failure to parent
+		// supervisor mailbox
+		// do not log here, log in the parent handling the error
+		supervisor.EscalateFailure(reason, child)
 	}
 }
 
-func (strategy *allForOneStrategy) requestRestartPermission(rs *RestartStatistics) bool {
+func (strategy *allForOneStrategy) shouldStop(rs *RestartStatistics) bool {
 
 	// supervisor says this child may not restart
 	if strategy.maxNrOfRetries == 0 {
-		return false
+		return true
 	}
 
 	rs.Fail()
 
-	if strategy.withinDuration == 0 || rs.IsWithinDuration(strategy.withinDuration) {
-		return rs.FailureCount <= strategy.maxNrOfRetries
+	if rs.NumberOfFailures(strategy.withinDuration) > strategy.maxNrOfRetries {
+		rs.Reset()
+		return true
 	}
 
-	// we are past the time limit, we can safely reset the failure count and restart
-	rs.Reset()
-	return true
+	return false
 }

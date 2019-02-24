@@ -18,8 +18,8 @@ const (
 )
 
 func main() {
-	//this node knows about Hello kind
-	remote.Register("Hello", actor.FromProducer(func() actor.Actor {
+	// this node knows about Hello kind
+	remote.Register("Hello", actor.PropsFromProducer(func() actor.Actor {
 		return &shared.HelloActor{}
 	}))
 
@@ -33,12 +33,15 @@ func main() {
 	async()
 
 	console.ReadLine()
+
+	cluster.Shutdown(true)
 }
 
 func sync() {
 	hello := shared.GetHelloGrain("abc")
-	options := []cluster.GrainCallOption{cluster.WithTimeout(5 * time.Second), cluster.WithRetry(5)}
-	res, err := hello.SayHello(&shared.HelloRequest{Name: "GAM"}, options...)
+	options := cluster.NewGrainCallOptions().WithTimeout(5 * time.Second).WithRetry(5)
+
+	res, err := hello.SayHelloWithOpts(&shared.HelloRequest{Name: "GAM"}, options)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -57,7 +60,7 @@ func async() {
 	for {
 		select {
 		case <-time.After(100 * time.Millisecond):
-			log.Println("Tick..") //this might not happen if res returns fast enough
+			log.Println("Tick..") // this might not happen if res returns fast enough
 		case err := <-e:
 			log.Fatal(err)
 		case res := <-c:

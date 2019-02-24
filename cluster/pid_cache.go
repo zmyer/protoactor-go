@@ -1,95 +1,117 @@
 package cluster
 
 import (
-	"time"
-
 	"github.com/AsynkronIT/protoactor-go/actor"
-	"github.com/AsynkronIT/protoactor-go/remote"
-	"github.com/AsynkronIT/protoactor-go/router"
+	"github.com/AsynkronIT/protoactor-go/eventstream"
+	cmap "github.com/orcaman/concurrent-map"
 )
 
-var (
-	pidCacheActorPid *actor.PID
-)
+var pidCache *pidCacheValue
 
-func spawnPidCacheActor() {
-	props := router.NewConsistentHashPool(128).WithProducer(newPidCacheActor())
-	pidCacheActorPid, _ = actor.SpawnNamed(props, "PidCache")
+type pidCacheValue struct {
+	cache        cmap.ConcurrentMap
+	reverseCache cmap.ConcurrentMap
 
+	watcher         *actor.PID
+	memberStatusSub *eventstream.Subscription
 }
-func newPidCacheActor() actor.Producer {
-	return func() actor.Actor {
-		return &pidCachePartitionActor{}
+
+func setupPidCache() {
+	pidCache = &pidCacheValue{
+		cache:        cmap.New(),
+		reverseCache: cmap.New(),
+	}
+
+	props := actor.PropsFromProducer(newPidCacheWatcher()).WithGuardian(actor.RestartingSupervisorStrategy())
+	pidCache.watcher, _ = rootContext.SpawnNamed(props, "PidCacheWatcher")
+
+	pidCache.memberStatusSub = eventstream.Subscribe(pidCache.onMemberStatusEvent).
+		WithPredicate(func(m interface{}) bool {
+			_, ok := m.(MemberStatusEvent)
+			return ok
+		})
+}
+
+func stopPidCache() {
+	pidCache.watcher.GracefulStop()
+	eventstream.Unsubscribe(pidCache.memberStatusSub)
+	pidCache = nil
+}
+
+func (c *pidCacheValue) onMemberStatusEvent(evn interface{}) {
+	switch msEvn := evn.(type) {
+	case *MemberLeftEvent:
+		address := msEvn.Name()
+		c.removeCacheByMemberAddress(address)
+	case *MemberRejoinedEvent:
+		address := msEvn.Name()
+		c.removeCacheByMemberAddress(address)
 	}
 }
 
-type pidCachePartitionActor struct {
-	Cache        map[string]*actor.PID
-	ReverseCache map[string]string
+func (c *pidCacheValue) getCache(name string) (*actor.PID, bool) {
+	v, ok := c.cache.Get(name)
+	if !ok {
+		return nil, false
+	}
+	return v.(*actor.PID), true
 }
 
-type pidCacheRequest struct {
-	name string
-	kind string
+func (c *pidCacheValue) addCache(name string, pid *actor.PID) bool {
+	if c.cache.SetIfAbsent(name, pid) {
+		key := pid.String()
+		c.reverseCache.Set(key, name)
+		// watch the pid so we know if the node or pid dies
+		rootContext.Send(c.watcher, &watchPidRequest{pid})
+		return true
+	}
+	return false
 }
 
-func (p *pidCacheRequest) Hash() string {
-	return p.name
+func (c *pidCacheValue) removeCacheByPid(pid *actor.PID) {
+	key := pid.String()
+	if name, ok := c.reverseCache.Get(key); ok {
+		c.cache.Remove(name.(string))
+		c.reverseCache.Remove(key)
+	}
 }
 
-func (a *pidCachePartitionActor) Receive(ctx actor.Context) {
+func (c *pidCacheValue) removeCacheByName(name string) {
+	if pid, ok := c.cache.Get(name); ok {
+		key := pid.(*actor.PID).String()
+		c.cache.Remove(name)
+		c.reverseCache.Remove(key)
+	}
+}
+
+func (c *pidCacheValue) removeCacheByMemberAddress(address string) {
+	for item := range c.cache.IterBuffered() {
+		name := item.Key
+		pid := item.Val.(*actor.PID)
+		if pid.Address == address {
+			c.cache.Remove(name)
+			c.reverseCache.Remove(pid.String())
+		}
+	}
+}
+
+type watchPidRequest struct {
+	pid *actor.PID
+}
+
+type pidCacheWatcherActor struct{}
+
+func newPidCacheWatcher() actor.Producer {
+	return func() actor.Actor {
+		return &pidCacheWatcherActor{}
+	}
+}
+
+func (a *pidCacheWatcherActor) Receive(ctx actor.Context) {
 	switch msg := ctx.Message().(type) {
-	case *actor.Started:
-		a.Cache = make(map[string]*actor.PID)
-		a.ReverseCache = make(map[string]string)
-
-	case *pidCacheRequest:
-		if pid, ok := a.Cache[msg.name]; ok {
-			//name was in cache, exit early
-			ctx.Respond(&remote.ActorPidResponse{Pid: pid})
-			return
-		}
-		name := msg.name
-		kind := msg.kind
-
-		address := getNode(name, kind)
-		remotePID := partitionForKind(address, kind)
-
-		//re-package the request as a remote.ActorPidRequest
-		req := &remote.ActorPidRequest{
-			Kind: kind,
-			Name: name,
-		}
-		//ask the DHT partition for this name to give us a PID
-		f := remotePID.RequestFuture(req, 5*time.Second)
-		ctx.AwaitFuture(f, func(r interface{}, err error) {
-			if err != nil {
-				return
-			}
-			response, ok := r.(*remote.ActorPidResponse)
-			if !ok {
-				return
-			}
-
-			a.Cache[name] = response.Pid
-			//make a lookup from pid to name
-			a.ReverseCache[response.Pid.String()] = name
-			//watch the pid so we know if the node or pid dies
-			ctx.Watch(response.Pid)
-			//tell the original requester that we have a response
-			ctx.Respond(response)
-		})
-
+	case *watchPidRequest:
+		ctx.Watch(msg.pid)
 	case *actor.Terminated:
-		key := msg.Who.String()
-		//get the virtual name from the pid
-		name, ok := a.ReverseCache[key]
-		if !ok {
-			//we don't have it, just ignore
-			return
-		}
-		//drop both lookups as this actor is now dead
-		delete(a.Cache, name)
-		delete(a.ReverseCache, key)
+		pidCache.removeCacheByPid(msg.Who)
 	}
 }

@@ -7,6 +7,10 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	rbqueue "github.com/Workiva/go-datastructures/queue"
+
+	"github.com/stretchr/testify/assert"
 )
 
 type invoker struct {
@@ -45,7 +49,8 @@ func TestUnboundedLockfreeMailboxUsermessageConsistency(t *testing.T) {
 		max: max,
 		wg:  &wg,
 	}
-	q := p(mi, NewDefaultDispatcher(300))
+	q := p()
+	q.RegisterHandlers(mi, NewDefaultDispatcher(300))
 
 	for j := 0; j < c; j++ {
 		cmax := max / c
@@ -80,7 +85,8 @@ func TestUnboundedLockfreeMailboxSysMessageConsistency(t *testing.T) {
 		max: max,
 		wg:  &wg,
 	}
-	q := p(mi, NewDefaultDispatcher(300))
+	q := p()
+	q.RegisterHandlers(mi, NewDefaultDispatcher(300))
 
 	for j := 0; j < c; j++ {
 		cmax := max / c
@@ -98,4 +104,29 @@ func TestUnboundedLockfreeMailboxSysMessageConsistency(t *testing.T) {
 	}
 	wg.Wait()
 	time.Sleep(1 * time.Second)
+}
+
+func TestBoundedMailbox(t *testing.T) {
+	size := 3
+	m := boundedMailboxQueue{
+		userMailbox: rbqueue.NewRingBuffer(uint64(size)),
+		dropping:    false,
+	}
+	m.Push("1")
+	m.Push("2")
+	m.Push("3")
+	assert.Equal(t, "1", m.Pop())
+}
+
+func TestBoundedDroppingMailbox(t *testing.T) {
+	size := 3
+	m := boundedMailboxQueue{
+		userMailbox: rbqueue.NewRingBuffer(uint64(size)),
+		dropping:    true,
+	}
+	m.Push("1")
+	m.Push("2")
+	m.Push("3")
+	m.Push("4")
+	assert.Equal(t, "2", m.Pop())
 }

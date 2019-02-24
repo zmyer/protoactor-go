@@ -2,66 +2,56 @@ package remote
 
 import (
 	"github.com/AsynkronIT/protoactor-go/actor"
-	"github.com/AsynkronIT/protoactor-go/log"
-	"github.com/gogo/protobuf/proto"
 )
 
-type remoteProcess struct {
+type process struct {
 	pid *actor.PID
 }
 
-func newRemoteProcess(pid *actor.PID) actor.Process {
-	return &remoteProcess{
+func newProcess(pid *actor.PID) actor.Process {
+	return &process{
 		pid: pid,
 	}
 }
 
-func (ref *remoteProcess) SendUserMessage(pid *actor.PID, message interface{}, sender *actor.PID) {
-	sendRemoteMessage(pid, message, sender)
+func (ref *process) SendUserMessage(pid *actor.PID, message interface{}) {
+	header, msg, sender := actor.UnwrapEnvelope(message)
+	SendMessage(pid, header, msg, sender, -1)
 }
 
-func sendRemoteMessage(pid *actor.PID, message interface{}, sender *actor.PID) {
-	switch msg := message.(type) {
-	case proto.Message:
-
-		rd := &remoteDeliver{
-			message: msg,
-			sender:  sender,
-			target:  pid,
-		}
-		endpointManagerPID.Tell(rd)
-	default:
-		plog.Error("failed, trying to send non Proto message", log.TypeOf("type", msg), log.Stringer("pid", pid))
+func SendMessage(pid *actor.PID, header actor.ReadonlyMessageHeader, message interface{}, sender *actor.PID, serializerID int32) {
+	rd := &remoteDeliver{
+		header:       header,
+		message:      message,
+		sender:       sender,
+		target:       pid,
+		serializerID: serializerID,
 	}
+
+	endpointManager.remoteDeliver(rd)
 }
 
-func (ref *remoteProcess) SendSystemMessage(pid *actor.PID, message interface{}) {
+func (ref *process) SendSystemMessage(pid *actor.PID, message interface{}) {
 
-	//intercept any Watch messages and direct them to the endpoint manager
+	// intercept any Watch messages and direct them to the endpoint manager
 	switch msg := message.(type) {
 	case *actor.Watch:
 		rw := &remoteWatch{
 			Watcher: msg.Watcher,
 			Watchee: pid,
 		}
-		endpointManagerPID.Tell(rw)
+		endpointManager.remoteWatch(rw)
 	case *actor.Unwatch:
 		ruw := &remoteUnwatch{
 			Watcher: msg.Watcher,
 			Watchee: pid,
 		}
-		endpointManagerPID.Tell(ruw)
+		endpointManager.remoteUnwatch(ruw)
 	default:
-		sendRemoteMessage(pid, message, nil)
+		SendMessage(pid, nil, message, nil, -1)
 	}
 }
 
-func (ref *remoteProcess) Stop(pid *actor.PID) {
+func (ref *process) Stop(pid *actor.PID) {
 	ref.SendSystemMessage(pid, stopMessage)
-}
-
-type remoteDeliver struct {
-	message proto.Message
-	target  *actor.PID
-	sender  *actor.PID
 }

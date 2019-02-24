@@ -22,10 +22,12 @@ func NewFuture(d time.Duration) *Future {
 	}
 
 	ref.pid = pid
-	ref.t = time.AfterFunc(d, func() {
-		ref.err = ErrTimeout
-		ref.Stop(pid)
-	})
+	if d >= 0 {
+		ref.t = time.AfterFunc(d, func() {
+			ref.err = ErrTimeout
+			ref.Stop(pid)
+		})
+	}
 
 	return &ref.Future
 }
@@ -51,7 +53,7 @@ func (f *Future) PID() *PID {
 func (f *Future) PipeTo(pids ...*PID) {
 	f.cond.L.Lock()
 	f.pipes = append(f.pipes, pids...)
-	//for an already completed future, force push the result to targets
+	// for an already completed future, force push the result to targets
 	if f.done {
 		f.sendToPipes()
 	}
@@ -70,7 +72,7 @@ func (f *Future) sendToPipes() {
 		m = f.result
 	}
 	for _, pid := range f.pipes {
-		pid.Tell(m)
+		pid.sendUserMessage(m)
 	}
 	f.pipes = nil
 }
@@ -96,7 +98,7 @@ func (f *Future) Wait() error {
 
 func (f *Future) continueWith(continuation func(res interface{}, err error)) {
 	f.cond.L.Lock()
-	defer f.cond.L.Unlock() //use defer as the continuation could blow up
+	defer f.cond.L.Unlock() // use defer as the continuation could blow up
 	if f.done {
 		continuation(f.result, f.err)
 	} else {
@@ -109,8 +111,9 @@ type futureProcess struct {
 	Future
 }
 
-func (ref *futureProcess) SendUserMessage(pid *PID, message interface{}, sender *PID) {
-	ref.result = message
+func (ref *futureProcess) SendUserMessage(pid *PID, message interface{}) {
+	_, msg, _ := UnwrapEnvelope(message)
+	ref.result = msg
 	ref.Stop(pid)
 }
 
@@ -127,7 +130,9 @@ func (ref *futureProcess) Stop(pid *PID) {
 	}
 
 	ref.done = true
-	ref.t.Stop()
+	if ref.t != nil {
+		ref.t.Stop()
+	}
 	ProcessRegistry.Remove(pid)
 
 	ref.sendToPipes()
@@ -136,9 +141,9 @@ func (ref *futureProcess) Stop(pid *PID) {
 	ref.cond.Signal()
 }
 
-//TODO: we could replace "pipes" with this
-//instead of pushing PIDs to pipes, we could push wrapper funcs that tells the pid
-//as a completeion, that would unify the model
+// TODO: we could replace "pipes" with this
+// instead of pushing PIDs to pipes, we could push wrapper funcs that tells the pid
+// as a completion, that would unify the model
 func (f *Future) runCompletions() {
 	if f.completions == nil {
 		return

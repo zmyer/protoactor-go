@@ -78,20 +78,20 @@ func main() {
 	var wg sync.WaitGroup
 
 	messageCount := 1000000
-
+	// remote.DefaultSerializerID = 1
 	remote.Start("127.0.0.1:8081")
 
+	rootContext := actor.EmptyRootContext()
 	props := actor.
-		FromProducer(newLocalActor(&wg, messageCount)).
+		PropsFromProducer(newLocalActor(&wg, messageCount)).
 		WithMailbox(mailbox.Bounded(1000000))
 
-	pid := actor.Spawn(props)
+	pid := rootContext.Spawn(props)
 
-	remote := actor.NewPID("127.0.0.1:8080", "remote")
-	remote.
-		RequestFuture(&messages.StartRemote{
-			Sender: pid,
-		}, 5*time.Second).
+	remotePid := actor.NewPID("127.0.0.1:8080", "remote")
+	rootContext.RequestFuture(remotePid, &messages.StartRemote{
+		Sender: pid,
+	}, 5*time.Second).
 		Wait()
 
 	wg.Add(1)
@@ -101,7 +101,7 @@ func main() {
 
 	message := &messages.Ping{}
 	for i := 0; i < messageCount; i++ {
-		remote.Tell(message)
+		rootContext.Send(remotePid, message)
 	}
 
 	wg.Wait()
